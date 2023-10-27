@@ -1,0 +1,186 @@
+!*******************************************
+! 150 MeV AWAKE Run 2 Electron Transfer Line
+!
+! C. Bracco, F.M. Velotti, R. Ramjiawan
+!
+!*******************************************
+
+
+TITLE, s='Gantry';
+
+option, echo;
+option, RBARC=FALSE;
+!BEAM, particle=proton, betx=8.24397, bety=8.24397, alfx=0.0, alfy=0.0, dx=0., dpx=0., dy=0., dpy=0.;
+BEAM, particle=electron, PC=150e-3, exn=2e-6, eyn=2e-6, npart=1.25e9, bunched, sigt=61.6e-6;
+!------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// DEFINITION OF PARAMETERS //
+rho:=1.65 ;
+AngUp := -45/180.0*pi;
+AngDown := 45/180.0*pi;
+lmb:=abs(AngDown)*rho;
+k:=0.014327;
+l_drift := 0.252116;
+kl1:=0.00023379*0; 
+kl2:= -0.057823;
+kl3:= -5.782325;
+kl4:= -578.232509;
+
+
+phi_x :=  0.002299; !Old version 0.010852;
+phi_y := -0.017804; !Old version -0.007089;
+
+gap = 80E-3;
+
+I1 = rho*(phi_x-phi_y)/(gap*(1+sin(phi_x)^2));
+
+!----------- Distance Definition
+
+l_wall=2.0;
+l_min := 0.325;
+
+dist0 := 1.834;
+dist1 := 2.141;
+dist2 := 0.977;
+
+l_mon2 := 0.325;
+l_corr2 := 0.650;
+l_corr3 := 0.650;
+
+
+l_sloped= dist0+dist1+dist2;
+
+l_var := (l_sloped-4.73); !per rinormalizzare all'altra seq.
+
+L1= l_wall + 2.4;
+L2= L1 + 3.17340697 + 0.6125;
+L3= L2 + l_1 + l_0 + l_2;
+
+!-------------------------------------------------------
+!   Elements
+!-------------------------------------------------------
+
+!------ Dipoles
+
+MBH_down: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1, hgap = gap/2, aperture = {gap,gap};  
+
+MBH_up: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1, hgap = gap/2, aperture = {gap,gap};  
+
+
+!------ Quadrupoles
+
+WARM_QUAD: QUADRUPOLE, L := 0.5;
+
+COLD_QUAD: QUADRUPOLE, L := 0.175;
+
+!------ Kicker
+
+COR: KICKER, L=0,HKICK:=0,VKICK:=0;
+
+!------- Beam position monitors
+
+MON: MONITOR, L=0;
+
+!------- Multipoles
+
+ML: MULTIPOLE, KNL:={0,kl1,kl2,kl3,kl4};
+
+!----------------------------------------------------
+
+GANTRY: SEQUENCE, 	L:= 21.67364732 + l_wall + l_var;
+
+!-------- Init L1
+
+MARK0: marker,    at = 0;
+MON0: MON, at = l_wall;
+CORR1: COR, at = l_wall + 0.2;
+Q0: WARM_QUAD , at = l_wall + 0.85;
+Q1: WARM_QUAD , at = l_wall + 1.6;
+MON1: MON, at = l_wall + 2.4;
+
+!------- First Bending L2
+
+Q2: COLD_QUAD , at = L1 + 0.9525;
+
+ML1: ML, at = L1 + 1.415;
+MB1: MBH_up, at = L1 + 2.062953485;
+ML2: ML, at = L1 + 2.71090697;
+
+Q3: COLD_QUAD , at = L1 + 3.17340697;
+
+!-------- Diagonal L3
+
+MON2: MON, at = L2 + l_mon2;
+Q4: WARM_QUAD , at = L2 + dist0;
+CORR2: COR, at = L2 + dist0 + l_corr2;
+Q5: WARM_QUAD , at = L2 +dist1 + dist0;
+CORR3: COR, at = L2 + dist1 + dist0 + l_corr3;
+
+!-------- Final Bend down
+
+Q6: COLD_QUAD, at = 11.52840697 + l_wall  + l_var;
+
+ML3: ML, at = 11.99090697 + l_wall + l_var;
+MB2: MBH_down, at = 12.63886045 + l_wall + l_var;
+ML4: ML, at = 13.28681394 + l_wall + l_var;
+
+Q7: COLD_QUAD, at = 13.74931394 + l_wall + l_var;
+
+Q8: COLD_QUAD, at = 14.37431394 + l_wall + l_var;
+
+ML5: ML, at = 14.83681394 + l_wall + l_var;
+MB3: MBH_down, at = 15.48476742 + l_wall + l_var;
+ML6: ML, at = 16.13272091 + l_wall + l_var;
+
+ML7: ML, at = 16.63272091 + l_wall + l_var;
+MB4: MBH_down, at = 17.28067439 + l_wall + l_var;
+ML8: ML, at = 17.92862788 + l_wall + l_var;
+
+SMX: marker, at = 18.87364732 + l_wall + l_var;
+SMY: marker, at = 19.32364732 + l_wall + l_var;
+MON3: MON, at = 20.87364732 + l_wall  + l_var;
+MON4: MON, at = 21.67364732 + l_wall + l_var;
+
+merge: marker,  at = 21.67364732 + l_wall + l_var;
+
+endsequence;
+
+!-------- QUADRUPOLE GRADIENTS
+
+Q0 , K1	:= kq0;
+Q1 , K1	:= kq1;
+Q2 , K1	:= kq2;
+Q3 , K1	:= kq3;
+Q4 , K1	:= kq4;
+Q5 , K1	:= kq5;
+Q6 , K1	:= kq6;
+Q7 , K1	:= kq7;
+Q8 , K1	:= kq8;
+
+MB1 , K1    :=  qd1;
+MB2 , K1    :=  qd2;
+MB3 , K1    :=  qd3;
+MB4 , K1    :=  qd4;
+
+kmb := 0.01437;
+
+qd1 = kmb;
+qd2 = kmb;
+qd3 = kmb;
+qd4 = kmb;
+
+kq0 = 2.323811628;
+kq1 = -2.897820544;
+kq2 = 5.80293764;
+kq3 = -5.441585438;
+kq4 = 1.948010225;
+kq5 = -2.129893896;
+kq6 = 1.966194965;
+kq7 = 2.962078517;
+kq8 = -3.876905437;
+
+
+USE, SEQUENCE=GANTRY;
+USEKICK,    Status = on;
+USEMONITOR, Status = off;
+
+set, format="15.9f";
