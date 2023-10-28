@@ -7,6 +7,7 @@ Track beam through line and extract beam parameters at merge-point
 
 import OptEnv as opt_env
 import errorOptEnv as errorEnv
+import Beam_Generator as beam_gen
 import plot_save_output as plot
 from scipy.optimize import minimize
 import numpy as np
@@ -67,7 +68,10 @@ n_particles = 100  # Used to generate distribution to track
 foil_w = 0*100e-6
 init_dist = []
 thin = False
-file = 'distr/Ellipse_150MeV_nominal.tfs'
+# Beam Parameters Vector [betx,bety,alphax,alphay,emix,emiy]
+beam_pars=[8.24397,8.24397,0.0,0.0,7*np.pi,7*np.pi]
+beam_gen.BeamGeneration(beam_pars)
+file = 'distr/Beam_Distribution.tfs'
 
 # Initialise environment
 env = opt_env.kOptEnv(solver, n_particles, n_iter, init_dist, foil_w, x, thin=thin)

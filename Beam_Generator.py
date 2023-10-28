@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+class BeamGeneration:
+    def Beam_Generator(Beam_pars):
+        # Define the mean and covariance matrix for the Gaussian distribution
+        betx=Beam_pars[1]
+        bety=Beam_pars[2]
+        alphax=Beam_pars[3]
+        alphay=Beam_pars[4]
+        emix=Beam_pars[5]
+        emiy=Beam_pars[6]
+        mean = np.array([0, 0, 0, 0])
+
+        gammax = (1+alphax**2)/betx
+        gammay = (1+alphay** 2)/bety
+        covariance_matrix = np.array([
+            [emix*betx, 0, 0, 0],
+            [0, emix*gammax, 0, 0],
+            [0, 0, emiy*bety, 0],
+            [0, 0, 0, emiy*gammay]
+        ])
+
+        # Number of samples to generate
+        num_samples = 1000
+
+        # Generate random samples from the Gaussian distribution
+        samples = np.random.multivariate_normal(mean, covariance_matrix, num_samples)
+
+        # Separate the dimensions
+        x = samples[:, 0]
+        px = samples[:, 1]
+        y = samples[:, 2]
+        py = samples[:, 3]
+
+        # Create a 4D scatter plot
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(x, y, px, c=py, cmap='viridis', marker='o')
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('px')
+
+        plt.show()
+
+        #np.savetxt('gaussian_distribution.txt', samples, delimiter=', ')
+
+        # Save the data 
+        with open("distr\Beam_Distribution.tfs", "w") as file:
+            for i in range(len(x)):
+                line = f"{x[i]}\t{y[i]}\t{px[i]}\t{py[i]}\n"
+                file.write(line)
