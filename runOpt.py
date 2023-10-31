@@ -40,16 +40,16 @@ q8 = -3.876905437
 # # enter the values here over which to optimise, otherwise hard-code them into MAD-X file
 # Norm indicates the maximum strength of quad intensity
 x = {
-    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 7},
-    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 7},
-    2: {'name': 'kq2', 'strength': q2, 'type': 'quadrupole', 'norm': 7},
-    3: {'name': 'kq3', 'strength': q3, 'type': 'quadrupole', 'norm': 7},
-    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 7},
-    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 7},
-    6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 7},
-    7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 7},
-    8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 7},
-    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 7},
+    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 70},
+    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 70},
+    2: {'name': 'kq2', 'strength': q2, 'type': 'quadrupole', 'norm': 70},
+    3: {'name': 'kq3', 'strength': q3, 'type': 'quadrupole', 'norm': 70},
+    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 70},
+    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 70},
+    6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 70},
+    7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 70},
+    8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 70},
+    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 70},
     # 15: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 0.2},
     # 16: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 0.2},
     # 17: {'name': 'dist2', 'strength': a2, 'type': 'distance', 'norm': 0.2},
@@ -63,8 +63,8 @@ x = {
 
 # Specify parameters for optimisation
 solver = 'Powell'
-n_iter = 20
-n_particles = 100  # Used to generate distribution to track
+n_iter = 200
+n_particles = 1000  # Used to generate distribution to track
 foil_w = 0*100e-6
 init_dist = []
 thin = False
@@ -72,6 +72,7 @@ thin = False
 beam_pars=[8.24397,8.24397,0.0,0.0,7/np.sqrt(5),7/np.sqrt(5)]
 beam_gen.Beam_Generator(beam_pars)
 file = 'distr/Beam_Distribution.tfs'
+#file = 'distr/Ellipse_150MeV_nominal.tfs'
 
 # Initialise environment
 env = opt_env.kOptEnv(solver, n_particles, n_iter, init_dist, foil_w, x, thin=thin)
@@ -85,8 +86,6 @@ for line in f:
 f.close()
 init_dist = np.array(var)[0:n_particles, 0:6].astype(float)
 env.init_dist = init_dist
-print(np.size(init_dist))
-sys.exit()
 del var
 
 # Either use optimiser (solution) or just output as is (step)
@@ -125,6 +124,8 @@ else:
     x_0 = env.norm_data([y['strength'] for y in x.values()])
     norm_vect = env.norm_data([y['norm'] for y in x.values()])
     n_obj = 1
+    
+
     
     
     class MatchingProblem(opt_env.kOptEnv, Problem):

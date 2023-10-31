@@ -268,7 +268,7 @@ class Plot:
         ax.yaxis.set_ticks_position('left')
         ax.set(xlim=(0, twiss['s'][-1]))
         # ax.set(ylim=(-0.001, 0.025))
-        plt.gcf().subplots_adjust(bottom=0.15)
+        #plt.gcf().subplots_adjust(bottom=0.15)
         ax1.set(xlim=(0, twiss['s'][-1]), ylim=(-1, 1))
         ax1.axes.get_yaxis().set_visible(False)
         ax1.spines['top'].set_visible(False)

@@ -17,7 +17,6 @@ def Beam_Generator(Beam_pars):
   Ek= 430 * 10**6 #eV
   dp_p=0.1/100;
   mean = np.array([0, 0, 0, 0, 0, np.sqrt(((E0+Ek)**2 - E0**2)/(c**2))])
-  print(mean[5])
 
   gammax = (1+alphax**2)/betx
   gammay = (1+alphay** 2)/bety
@@ -54,7 +53,7 @@ def Beam_Generator(Beam_pars):
   ax.set_ylabel('Y')
   ax.set_zlabel('px')
 
-  plt.show()
+  #plt.show()
 
   #np.savetxt('gaussian_distribution.txt', samples, delimiter=', ')
   #Save the data 

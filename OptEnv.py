@@ -91,7 +91,7 @@ class kOptEnv(gym.Env):
         print('NOM SIG_x =' + str(round(a[10], 4)) + ', SIG_y=' + str(round(a[11], 4)))
         print("LOSS = " + str(a[3]))
 
-        self.parameters = [(a[0]-a[10]) * (a[3] + 1),  # beam size x matched
+        self.parameters = [(a[0]-a[10]) * (a[3] + 1),  # beam size x matched (why i need to divide for the losses?)
                            (a[1]-a[11]) * (a[3] + 1),  # beam size y macthed
                            a[0]+a[1], # beam size
                            a[1]-a[0], # beam size
@@ -99,7 +99,7 @@ class kOptEnv(gym.Env):
                            a[9],  # dx2
                            a[5],  # alfax
                            a[6],  # alfay
-                           a[3]
+                           a[3]   # losses
                            ]
         self.targets = [0,  # beam size x
                         0,  # beam size y
@@ -254,12 +254,12 @@ class kOptEnv(gym.Env):
          If MAD-X fails, re-spawn process
          """
         self.madx = Madx(stdout=False)
-        self.madx.call(file='general_tt43_python.madx')
+        self.madx.call(file='gantry_2.madx')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         if thin:
             self.madx.select(FLAG='makethin', THICK=True)
-            self.madx.makethin(SEQUENCE='TT43', STYLE='teapot')
-        self.madx.use(sequence='TT43')
+            self.madx.makethin(SEQUENCE='GANTRY', STYLE='teapot')
+        self.madx.use(sequence='GANTRY')
         self.madx.twiss(BETX=5, ALFX=0, DX=0, DPX=0, BETY=5, ALFY=0, DY=0, dpy=0)
 
     def kill_reset(self, thin):
@@ -270,12 +270,12 @@ class kOptEnv(gym.Env):
         del self.madx
         time.sleep(1)
         self.madx = Madx(stdout=False)
-        self.madx.call(file='general_tt43_python.madx')
+        self.madx.call(file='gantry_2.madx')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         if thin:
             self.madx.select(FLAG='makethin', THICK=True)
-            self.madx.makethin(SEQUENCE='TT43', STYLE='teapot')
-        self.madx.use(sequence='TT43')
+            self.madx.makethin(SEQUENCE='GANTRY', STYLE='teapot')
+        self.madx.use(sequence='GANTRY')
         self.madx.twiss(BETX=5, ALFX=0, DX=0, DPX=0, BETY=5, ALFY=0, DY=0, dpy=0)
 
     def render(self, mode='human'):

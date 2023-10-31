@@ -6,12 +6,12 @@
 !*******************************************
 
 
-TITLE, s='Gantry';
+TITLE, s='GANTRY';
 
 option, echo;
 option, RBARC=FALSE;
 !BEAM, particle=proton, betx=8.24397, bety=8.24397, alfx=0.0, alfy=0.0, dx=0., dpx=0., dy=0., dpy=0.;
-BEAM, particle=electron, PC=150e-3, exn=2e-6, eyn=2e-6, npart=1.25e9, bunched, sigt=61.6e-6;
+BEAM, particle=proton, PC=430e-3, npart=1.25e9, bunched;
 !------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // DEFINITION OF PARAMETERS //
 rho:=1.65 ;
@@ -140,7 +140,7 @@ SMY: marker, at = 19.32364732 + l_wall + l_var;
 MON3: MON, at = 20.87364732 + l_wall  + l_var;
 MON4: MON, at = 21.67364732 + l_wall + l_var;
 
-merge: marker,  at = 21.67364732 + l_wall + l_var;
+ISO: marker,  at = 21.67364732 + l_wall + l_var;
 
 endsequence;
 

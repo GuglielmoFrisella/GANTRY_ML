@@ -36,7 +36,7 @@ class Error:
         self.n_particles = n_particles
         self.name = [y['name'] for y in x.values()]
         self.madx = Madx(stdout=False)
-        self.madx.call(file='general_tt43_python.madx')
+        self.madx.call(file='gantry_2.madx')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         for j in range(self.dof):
             print(self.name[j][0] + self.name[j][-1] + "=" + str(self.q[j]) + ";")
@@ -122,14 +122,14 @@ class Error:
         self.ptc_twiss(True)
 
     def addError(self, seed):
-        self.madx.use(sequence='TT43')
+        self.madx.use(sequence='GANTRY')
         self.zeroCorr()
         self.madx.input("ii =" + str(seed) + ";")
         self.madx.call(file='add_errors.madx')
         self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
 
     def calcOffsets(self, parameter):
-        self.madx.use(sequence='TT43')
+        self.madx.use(sequence='GANTRY')
         # np.random.seed(0)
         # x0 = np.random.normal()*10**-5
         # np.random.seed(1)
@@ -1009,7 +1009,7 @@ class Error:
         for j in range(len(self.a)):
             self.madx.input("dist" + str(j) + "=" + str(self.x_best[i]) + ";")
             i = i + 1
-        # self.madx.use(sequence='TT43')
+        # self.madx.use(sequence='GANTRY')
         # self.madx.input("ii =" + str(0) + ";")
         # self.madx.call(file='add_errors.madx')
         # self.madx.input("USEKICK, Status = on;")
@@ -1190,7 +1190,7 @@ class Error:
         y_after = np.zeros(shape=(self.n_seeds, len(quads)))
 
         # for self.ii in range(self.n_seeds):
-        # self.madx.use(sequence='TT43')
+        # self.madx.use(sequence='GANTRY')
 
         # Zero all correctors
         corr_xy = np.zeros([2 * np.size(self.correctors)])
@@ -1955,12 +1955,12 @@ class Error:
 
     def madx_init(self):
         self.madx = Madx(stdout=False)
-        self.madx.call(file='general_tt43_python.madx')
+        self.madx.call(file='gantry_2.madx')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         for j in range(self.dof):
             print(self.name[j][0] + self.name[j][-1] + "=" + str(self.q[j]) + ";")
             self.madx.input(self.name[j] + "=" + str(self.q[j]) + ";")
-        self.madx.use(sequence='TT43')
+        self.madx.use(sequence='GANTRY')
 
     def ptc_twiss(self, Bool):
         np.random.seed(self.shot)
@@ -2011,10 +2011,10 @@ class Error:
         ptc_output = self.madx.table.trackone
 
         # self.madx.select(FLAG='makethin', THICK=True)
-        # self.madx.makethin(SEQUENCE='TT43', STYLE='teapot')
+        # self.madx.makethin(SEQUENCE='GANTRY', STYLE='teapot')
         # # self.madx.align()
         # # madx.flatten()
-        # self.madx.use(sequence='TT43')
+        # self.madx.use(sequence='GANTRY')
         # twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
         # with self.madx.batch():
         #     self.madx.track(onetable=True, recloss=True, onepass=True)
