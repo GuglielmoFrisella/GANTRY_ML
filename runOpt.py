@@ -69,8 +69,8 @@ foil_w = 0*100e-6
 init_dist = []
 thin = False
 # Beam Parameters Vector [betx,bety,alphax,alphay,emix,emiy]
-beam_pars=[8.24397,8.24397,0.0,0.0,7*np.pi,7*np.pi]
-beam_gen.BeamGeneration(beam_pars)
+beam_pars=[8.24397,8.24397,0.0,0.0,7/np.sqrt(5),7/np.sqrt(5)]
+beam_gen.Beam_Generator(beam_pars)
 file = 'distr/Beam_Distribution.tfs'
 
 # Initialise environment
@@ -83,8 +83,10 @@ for line in f:
     var.append(
         line.strip().split())
 f.close()
-init_dist = np.array(var)[0:n_particles, 0:6].astype(np.float)
+init_dist = np.array(var)[0:n_particles, 0:6].astype(float)
 env.init_dist = init_dist
+print(np.size(init_dist))
+sys.exit()
 del var
 
 # Either use optimiser (solution) or just output as is (step)
