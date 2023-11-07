@@ -20,13 +20,14 @@ def Beam_Generator(Beam_pars):
 
   gammax = (1+alphax**2)/betx
   gammay = (1+alphay** 2)/bety
+  
   covariance_matrix = np.array([
       [emix*betx, 0, 0, 0, 0, 0],
       [0, emix*gammax, 0, 0, 0, 0],
       [0, 0, emiy*bety, 0, 0, 0],
       [0, 0, 0, emiy*gammay, 0, 0],
       [0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, mean[5]*dp_p]
+      [0, 0, 0, 0, 0, 0.33*mean[5]*dp_p]
   ])
 
   # Number of samples to generate

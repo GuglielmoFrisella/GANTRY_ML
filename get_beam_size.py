@@ -30,7 +30,7 @@ class getBeamSize:
         py0 = self.init_dist[:, 4]
         self.foil_w = foil_w
         self.dof = self.no_quad + self.no_sext + self.no_oct + self.no_dist
-        self.gamma = np.sqrt(938e-3 ** 2 + 400e-3 ** 2) / 938e-3
+        self.gamma = np.sqrt(938e-3 ** 2 + 430e-3 ** 2) / 938e-3
         self.beta_nom = 8.24397
         
         # Calculate bunch parameters from input distribution
@@ -58,15 +58,15 @@ class getBeamSize:
             self.madx.use(sequence='GANTRY', range="GANTRY$START/GANTRY$END")
             self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                             DY=0, dpy=0)
-            ptc_output, error_flag = self.track('GANTRY$START', 'GANTRY$END', ['ISO'], self.init_dist)
+            ptc_output, error_flag = self.track('GANTRY$START', 'GANTRY$END', ['iso'], self.init_dist)
         except RuntimeError:
             error_flag = 1
         if error_flag == 0:
-            x0 = np.array(ptc_output['x'].loc['ISO'])
-            y0 = np.array(ptc_output['y'].loc['ISO'])
-            z0 = np.array(ptc_output['t'].loc['ISO'])
-            px0 = np.array(ptc_output['px'].loc['ISO'])
-            py0 = np.array(ptc_output['py'].loc['ISO'])
+            x0 = np.array(ptc_output['x'].loc['iso'])
+            y0 = np.array(ptc_output['y'].loc['iso'])
+            z0 = np.array(ptc_output['t'].loc['iso'])
+            px0 = np.array(ptc_output['px'].loc['iso'])
+            py0 = np.array(ptc_output['py'].loc['iso'])
 
             all_u0 = x0 + y0 + z0 + px0 + py0
             x0 = x0[~np.isnan(all_u0)]
@@ -101,13 +101,13 @@ class getBeamSize:
 
                 twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                                         DY=0, dpy=0)
-                if 'ISO:1' in twiss['name']:
-                    betx = twiss['betx'][twiss['name'] == 'ISO:1'][0]
-                    bety = twiss['bety'][twiss['name'] == 'ISO:1'][0]
-                    alfx = twiss['alfx'][twiss['name'] == 'ISO:1'][0]
-                    alfy = twiss['alfy'][twiss['name'] == 'ISO:1'][0]
-                    dx = twiss['dx'][twiss['name'][:] == 'ISO:1'][0]
-                    dx2 = twiss['dx'][twiss['name'][:] == 'GANTRY$end:1'][0]
+                if 'iso:1' in twiss['name']:
+                    betx = twiss['betx'][twiss['name'] == 'iso:1'][0]
+                    bety = twiss['bety'][twiss['name'] == 'iso:1'][0]
+                    alfx = twiss['alfx'][twiss['name'] == 'iso:1'][0]
+                    alfy = twiss['alfy'][twiss['name'] == 'iso:1'][0]
+                    dx = twiss['dx'][twiss['name'][:] == 'iso:1'][0]
+                    dx2 = twiss['dx'][twiss['name'][:] == 'iso:1'][0]
 
                     self.del_madx_tab()
                     if betx < 0 or bety < 0:
@@ -129,8 +129,8 @@ class getBeamSize:
         # set magnet strengths/positions
         self.set_quads()
         try:
-            ptc_output, error_flag = self.ptc_track('GANTRY$START',  'ISO', 'ISO',self.init_dist)
-            #ptc_output, error_flag = self.ptc_track('MARK0', 'ISO', 'ISO', self.init_dist)
+            ptc_output, error_flag = self.ptc_track('GANTRY$START',  'iso', 'iso',self.init_dist)
+            #ptc_output, error_flag = self.ptc_track('MARK0', 'iso', 'iso', self.init_dist)
             #print(ptc_output['x'].loc['iso'])
             #sys.exit()
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
@@ -175,15 +175,15 @@ class getBeamSize:
 
                 ptc_twiss = self.ptc_twiss()
                 # Calculate twiss parameters at merge-point
-                if 'ISO:1' in ptc_twiss['name']:
-                    betx = twiss['betx'][ptc_twiss['name'] == 'ISO:1'][0]
-                    bety = twiss['bety'][ptc_twiss['name'] == 'ISO:1'][0]
+                if 'iso:1' in ptc_twiss['name']:
+                    betx = twiss['betx'][ptc_twiss['name'] == 'iso:1'][0]
+                    bety = twiss['bety'][ptc_twiss['name'] == 'iso:1'][0]
 
-                    alfx = ptc_twiss['alfx'][ptc_twiss['name'] == 'ISO:1'][0]
-                    alfy = ptc_twiss['alfy'][ptc_twiss['name'] == 'ISO:1'][0]
+                    alfx = ptc_twiss['alfx'][ptc_twiss['name'] == 'iso:1'][0]
+                    alfy = ptc_twiss['alfy'][ptc_twiss['name'] == 'iso:1'][0]
 
-                    dx = twiss['dx'][twiss['name'][:] == 'ISO:1'][0]
-                    dx2 = twiss['dx'][twiss['name'][:] == 'ISO:1'][0]
+                    dx = twiss['dx'][twiss['name'][:] == 'iso:1'][0]
+                    dx2 = twiss['dx'][twiss['name'][:] == 'iso:1'][0]
 
                     if betx < 0 or bety < 0:
                         betx = 100
@@ -215,7 +215,7 @@ class getBeamSize:
             self.madx.use(sequence='GANTRY', range="GANTRY$START/GANTRY$END")
             self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                             DY=0, dpy=0)
-            ptc_output, error_flag = self.ptc_track('GANTRY$START', 'GANTRY$END', ['ISO', 'FOIL1'], self.init_dist)
+            ptc_output, error_flag = self.ptc_track('GANTRY$START', 'GANTRY$END', ['iso', 'FOIL1'], self.init_dist)
         except RuntimeError:
             print("RuntimeError")
             error_flag = 1
@@ -252,7 +252,7 @@ class getBeamSize:
                 init_dist = np.transpose([x0, y0, t0, px0, py0, pt0])
                 print(len(init_dist))
                 if len(init_dist) > 12:
-                    ptc_output, error_flag = self.ptc_track('FOIL1', 'GANTRY$END', ['ISO', 'FOIL2'], init_dist)
+                    ptc_output, error_flag = self.ptc_track('FOIL1', 'GANTRY$END', ['iso', 'FOIL2'], init_dist)
                     if error_flag == 0:
                         if 'foil2' in ptc_output.index:
                             x0 = np.array(ptc_output['x'].loc['foil2'])
@@ -276,14 +276,14 @@ class getBeamSize:
                             init_dist = np.transpose([x0, y0, t0, px0, py0, pt0])
                             print(len(init_dist))
                             if len(init_dist) > 12:
-                                ptc_output, error_flag = self.ptc_track('FOIL2', 'GANTRY$END', ['ISO'],
+                                ptc_output, error_flag = self.ptc_track('FOIL2', 'GANTRY$END', ['iso'],
                                                                         init_dist)
                                 if error_flag == 0:
-                                    x0 = np.array(ptc_output['x'].loc['ISO'])
-                                    y0 = np.array(ptc_output['y'].loc['ISO'])
-                                    z0 = np.array(ptc_output['t'].loc['ISO'])
-                                    px0 = np.array(ptc_output['px'].loc['ISO'])
-                                    py0 = np.array(ptc_output['py'].loc['ISO'])
+                                    x0 = np.array(ptc_output['x'].loc['iso'])
+                                    y0 = np.array(ptc_output['y'].loc['iso'])
+                                    z0 = np.array(ptc_output['t'].loc['iso'])
+                                    px0 = np.array(ptc_output['px'].loc['iso'])
+                                    py0 = np.array(ptc_output['py'].loc['iso'])
 
 
                         if self.ptc == False:
@@ -330,10 +330,10 @@ class getBeamSize:
                                             DY=0, dpy=0)
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                                     DY=0, dpy=0)
-            if 'ISO:1' in ptc_twiss['name']:
-                betx = ptc_twiss['betx'][ptc_twiss['name'] == 'ISO:1'][0]
-                bety = ptc_twiss['bety'][ptc_twiss['name'] == 'ISO:1'][0]
-                dx = twiss['dx'][twiss['name'][:] == 'ISO:1'][0]
+            if 'iso:1' in ptc_twiss['name']:
+                betx = ptc_twiss['betx'][ptc_twiss['name'] == 'iso:1'][0]
+                bety = ptc_twiss['bety'][ptc_twiss['name'] == 'iso:1'][0]
+                dx = twiss['dx'][twiss['name'][:] == 'iso:1'][0]
                 dx2 = twiss['dx'][twiss['name'][:] == 'GANTRY$end:1'][0]
                 if betx < 0 or bety < 0:
                     betx = 1000
@@ -425,15 +425,15 @@ class getBeamSize:
 
     def get_beam_params(self, x0, y0, z0, rms=False):
         if rms:
-            beam_size_x = np.multiply(self.rmsValue(x0), 10 ** 6)
-            beam_size_y = np.multiply(self.rmsValue(y0), 10 ** 6)
-            beam_size_z = np.multiply(self.rmsValue(z0), 10 ** 6)
+            beam_size_x = np.multiply(self.rmsValue(x0), 10 ** 0)
+            beam_size_y = np.multiply(self.rmsValue(y0), 10 ** 0)
+            beam_size_z = np.multiply(self.rmsValue(z0), 10 ** 0)
         else:
-            beam_size_x = np.multiply(np.std(x0), 10 ** 6)
-            beam_size_y = np.multiply(np.std(y0), 10 ** 6)
-            beam_size_z = np.multiply(np.std(z0), 10 ** 6)
-        beam_pos_x = np.multiply(np.mean(x0), 10 ** 6)
-        beam_pos_y = np.multiply(np.mean(y0), 10 ** 6)
+            beam_size_x = np.multiply(np.std(x0), 10 ** 0)
+            beam_size_y = np.multiply(np.std(y0), 10 ** 0)
+            beam_size_z = np.multiply(np.std(z0), 10 ** 0)
+        beam_pos_x = np.multiply(np.mean(x0), 10 ** 0)
+        beam_pos_y = np.multiply(np.mean(y0), 10 ** 0)
         # frac_x = np.divide(sum(abs(x0)<5.76*10**-6), len(x0))
         # frac_y = np.divide(sum(abs(y0)<5.76*10**-6), len(y0))
         frac_x = stats.kurtosis(self.reject_outliers(x0), fisher=True)

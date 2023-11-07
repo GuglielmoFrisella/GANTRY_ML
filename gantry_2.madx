@@ -10,20 +10,13 @@ TITLE, s='GANTRY';
 
 option, echo;
 option, RBARC=FALSE;
-!BEAM, particle=proton, betx=8.24397, bety=8.24397, alfx=0.0, alfy=0.0, dx=0., dpx=0., dy=0., dpy=0.;
-BEAM, particle=proton, PC=430e-3, npart=1.25e9, bunched;
+BEAM, particle=proton, PC=3*430*e+5, exn=(7/5)*e-6, eyn=(7/5)*e-6, npart=1.25e9, bunched;
 !------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // DEFINITION OF PARAMETERS //
 rho:=1.65 ;
 AngUp := -45/180.0*pi;
 AngDown := 45/180.0*pi;
 lmb:=abs(AngDown)*rho;
-k:=0.014327;
-l_drift := 0.252116;
-kl1:=0.00023379*0; 
-kl2:= -0.057823;
-kl3:= -5.782325;
-kl4:= -578.232509;
 
 
 phi_x :=  0.002299; !Old version 0.010852;
@@ -161,7 +154,7 @@ MB2 , K1    :=  qd2;
 MB3 , K1    :=  qd3;
 MB4 , K1    :=  qd4;
 
-kmb := 0.01437;
+kmb = 0.01437;
 
 qd1 = kmb;
 qd2 = kmb;

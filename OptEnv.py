@@ -91,8 +91,8 @@ class kOptEnv(gym.Env):
         print('NOM SIG_x =' + str(round(a[10], 4)) + ', SIG_y=' + str(round(a[11], 4)))
         print("LOSS = " + str(a[3]))
 
-        self.parameters = [(a[0]-a[10]) * (a[3] + 1),  # beam size x matched (why i need to divide for the losses?)
-                           (a[1]-a[11]) * (a[3] + 1),  # beam size y macthed
+        self.parameters = [(a[0]-a[10]),  # beam size x matched
+                           (a[1]-a[11]),  # beam size y macthed
                            a[0]+a[1], # beam size
                            a[1]-a[0], # beam size
                            a[8],  # dx
@@ -111,17 +111,17 @@ class kOptEnv(gym.Env):
                         0,  # alfay
                         0
                         ]
-        self.weights = [100,  # beam size x
-                        100,  # beam size y
-                        5,  # kurt x
-                        50,  # kurt y
+        self.weights = [1,  # beam size x
+                        1,  # beam size y
+                        1,  # kurt x
+                        1,  # kurt y
                         #
                         # 0,   # x = y
                         1,  # dx
                         1,  # dx2
-                        100000,  # alfax
-                        100000,  # alfay
-                        10
+                        1,  # alfax
+                        1,  # alfay
+                        1
                         ]
         # y_raw = np.tanh(np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)/1000)
         y_raw = np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)

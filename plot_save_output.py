@@ -158,7 +158,7 @@ class Plot:
                 self.madx.input(self.name[j] + "=" + str(args[0][j]) + ";")
                 print(self.name[j][0] + self.name[j][-1] + "=" + str(args[0][j])+ ";")
         self.madx.use(sequence='TT43', range='#s/#e')
-        self.madx.twiss(RMATRIX=True, BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        self.madx.twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         fig = plt.figure(figsize=(8,7), constrained_layout=True)
         gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[1, 4])
         ax = fig.add_subplot(gs[1])
@@ -518,7 +518,7 @@ class Plot:
             self.madx.ptc_create_layout(model=1, method=6, exact=True, NST=100)
             self.madx.ptc_setswitch(fringe=True)
             self.madx.ptc_align()
-            self.madx.ptc_observe(place='MERGE')
+            self.madx.ptc_observe(place='iso')
             self.madx.ptc_observe(place='FOIL1')
             self.madx.ptc_observe(place='FOIL2')
 
@@ -583,7 +583,7 @@ class Plot:
             self.madx.ptc_create_layout(model=1, method=2, exact=True, NST=100)
             self.madx.ptc_setswitch(fringe=True)
             self.madx.ptc_align()
-            self.madx.ptc_observe(place='MERGE')
+            self.madx.ptc_observe(place='iso')
             self.madx.ptc_observe(place='FOIL1')
             self.madx.ptc_observe(place='FOIL2')
             self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
@@ -640,16 +640,16 @@ class Plot:
                 for particle in init_dist:
                     self.madx.ptc_start(x=particle[0], px=particle[3], y=particle[1], py=particle[4], t=particle[2],
                                         pt=1 * particle[5])
-                self.madx.ptc_observe(PLACE='MERGE')
+                self.madx.ptc_observe(PLACE='iso')
                 self.madx.ptc_track(icase=56, element_by_element=True, dump=True, onetable=True, recloss=True,
                                     maxaper=[0.025, 0.025, 0.025, 0.025, 1.0, 1])
                 self.madx.ptc_track_end()
             ptc_output = self.madx.table.trackone
 
             for idx in range(np.size(twiss['l'])):
-                if twiss['name'][idx] == 'merge:1':
-                    s_merge = twiss['s'][idx]
-            idx_temp = np.array(ptc_output.s == s_merge)
+                if twiss['name'][idx] == 'iso:1':
+                    s_iso = twiss['s'][idx]
+            idx_temp = np.array(ptc_output.s == s_iso)
 
             print("input emittance x = " + str(round(self.emitx_before * 150000000 / 0.511, 4)) + " um")
             print("input emittance y = " + str(round(self.emity_before * 150000000 / 0.511, 4)) + " um")
@@ -956,7 +956,7 @@ class Plot:
         self.madx.ptc_create_layout(model=1, method=6, exact=True, NST=100)
         self.madx.ptc_setswitch(fringe=True)
         self.madx.ptc_align()
-        self.madx.ptc_observe(place='MERGE')
+        self.madx.ptc_observe(place='iso')
         self.madx.ptc_observe(place='FOIL')
 
         # self.madx.input("ii =" + str(seed) + ";")
@@ -972,9 +972,9 @@ class Plot:
         #     self.madx.ptc_track_end()
         # ptc_output = self.madx.table.trackone
 
-        # if any(twiss['name'][:] == 'merge:1'):
+        # if any(twiss['name'][:] == 'iso:1'):
         #     for idx in range(np.size(twiss['name'])):
-        #         if twiss['name'][idx] == 'merge:1':
+        #         if twiss['name'][idx] == 'iso:1':
         #             s_foil = twiss['s'][idx]
         #     idx_temp = np.array(ptc_output.s == s_foil)
 
@@ -1027,16 +1027,16 @@ class Plot:
             for particle in init_dist:
                 self.madx.ptc_start(x=particle[0], px=particle[3], y=particle[1], py=particle[4], t=particle[2],
                                     pt=1 * particle[5])
-            self.madx.ptc_observe(PLACE='MERGE')
+            self.madx.ptc_observe(PLACE='iso')
             self.madx.ptc_track(icase=56, element_by_element=True, dump=True, onetable=True, recloss=True,
                                 maxaper=[0.025, 0.025, 0.025, 0.025, 1.0, 1])
             self.madx.ptc_track_end()
         ptc_output = self.madx.table.trackone
 
         for idx in range(np.size(twiss['l'])):
-            if twiss['name'][idx] == 'merge:1':
-                s_merge = twiss['s'][idx]
-        idx_temp = np.array(ptc_output.s == s_merge)
+            if twiss['name'][idx] == 'iso:1':
+                s_iso = twiss['s'][idx]
+        idx_temp = np.array(ptc_output.s == s_iso)
 
         print("input emittance x = " + str(round(self.emitx_before * 150000000 / 0.511, 4)) + " um")
         print("input emittance y = " + str(round(self.emity_before * 150000000 / 0.511, 4)) + " um")
@@ -1243,7 +1243,7 @@ class Plot:
         self.madx.ptc_create_layout(model=1, method=6, exact=True, NST=100)
         self.madx.ptc_setswitch(fringe=True)
         self.madx.ptc_align()
-        self.madx.ptc_observe(place='MERGE')
+        self.madx.ptc_observe(place='iso')
         self.madx.ptc_observe(place='FOIL')
 
         with self.madx.batch():
@@ -1257,7 +1257,7 @@ class Plot:
         ptc_output = self.madx.table.trackone
 
         for idx in range(np.size(twiss['l'])):
-            if twiss['name'][idx] == 'merge:1':
+            if twiss['name'][idx] == 'iso:1':
                 s_foil = twiss['s'][idx]
         idx_temp = np.array(ptc_output.s == s_foil)
 
@@ -1291,7 +1291,7 @@ class Plot:
         Plot beam distributions
         """
         i = 0
-        observe = ['MERGE']
+        observe = ['iso']
         print('Plotting distributions...')
         if args:
             for j in range(self.dof):
@@ -1319,9 +1319,9 @@ class Plot:
             ptc_output = ptc_output.dframe()
 
         for idx in range(np.size(twiss['l'])):
-            if twiss['name'][idx] == 'tt43$start:1':
-                s_merge = twiss['s'][idx]
-        idx_temp = np.array(ptc_output.s == s_merge)
+            if twiss['name'][idx] == 'gantry$start:1':
+                s_iso = twiss['s'][idx]
+        idx_temp = np.array(ptc_output.s == s_iso)
 
         print("input emittance x = " + str(round(self.emitx_before * 150000000 / 0.511, 4)) + " um")
         print("input emittance y = " + str(round(self.emity_before * 150000000 / 0.511, 4)) + " um")
@@ -1950,7 +1950,7 @@ class Plot:
         Bar charts showing the contribution to the beam size from different orders
         """
 
-        self.madx.use(sequence='TT43', range="TT43$START/MERGE")
+        self.madx.use(sequence='TT43', range="TT43$START/iso")
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0, DY=0, dpy=0)
         self.madx.ptc_create_universe()
@@ -2276,7 +2276,7 @@ class Plot:
         # print(emitx_before * 150 / 0.511)
         #
         # for idx in range(np.size(twiss['l'])):
-        #     if twiss['name'][idx] == 'merge:1':
+        #     if twiss['name'][idx] == 'iso:1':
         #         s_EN = twiss['s'][idx]
         # idx = np.array(ptc_output.s == s_EN)
         # x_out = ptc_output.x[idx]
