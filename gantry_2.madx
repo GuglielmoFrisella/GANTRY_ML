@@ -10,12 +10,12 @@ TITLE, s='GANTRY';
 
 option, echo;
 option, RBARC=FALSE;
-BEAM, particle=proton, PC=3*430*e+5, exn=(7/5)*e-6, eyn=(7/5)*e-6, npart=1.25e9, bunched;
+BEAM, particle=proton, PC=3*430*e+100, exn=(7/sqrt(5))*e-6, eyn=(7/sqrt(5))*e-6, npart=1.25e9, bunched;
 !------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // DEFINITION OF PARAMETERS //
 rho:=1.65 ;
-AngUp := -45/180.0*pi;
-AngDown := 45/180.0*pi;
+AngUp := -(45/180.0)*pi;
+AngDown := (45/180.0)*pi;
 lmb:=abs(AngDown)*rho;
 
 
@@ -54,9 +54,9 @@ L3= L2 + l_1 + l_0 + l_2;
 
 !------ Dipoles
 
-MBH_down: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1, hgap = gap/2, aperture = {gap,gap};  
+MBH_down: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1*0, hgap = gap/2, aperture = {gap,gap};  
 
-MBH_up: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1, hgap = gap/2, aperture = {gap,gap};  
+MBH_up: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1*0, hgap = gap/2, aperture = {gap,gap};  
 
 
 !------ Quadrupoles
@@ -149,11 +149,6 @@ Q6 , K1	:= kq6;
 Q7 , K1	:= kq7;
 Q8 , K1	:= kq8;
 
-MB1 , K1    :=  qd1;
-MB2 , K1    :=  qd2;
-MB3 , K1    :=  qd3;
-MB4 , K1    :=  qd4;
-
 kmb = 0.01437;
 
 qd1 = kmb;
@@ -161,11 +156,16 @@ qd2 = kmb;
 qd3 = kmb;
 qd4 = kmb;
 
+MB1 , K1    :=  qd1;
+MB2 , K1    :=  qd2;
+MB3 , K1    :=  qd3;
+MB4 , K1    :=  qd4;
+
 kq0 = 2.323811628;
 kq1 = -2.897820544;
 kq2 = 5.80293764;
 kq3 = -5.441585438;
-kq4 = 1.948010225;
+kq4 = -10.948010225;
 kq5 = -2.129893896;
 kq6 = 1.966194965;
 kq7 = 2.962078517;

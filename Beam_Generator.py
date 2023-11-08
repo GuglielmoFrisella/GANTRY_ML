@@ -45,14 +45,14 @@ def Beam_Generator(Beam_pars):
   pz = samples[:, 5]
 
   # Create a 4D scatter plot
-  fig = plt.figure()
-  ax = fig.add_subplot(111, projection='3d')
+  #fig = plt.figure()
+  #ax = fig.add_subplot(111, projection='3d')
 
-  ax.scatter(x, y, px, c=py, cmap='viridis', marker='o')
+   #ax.scatter(x, y, px, c=py, cmap='viridis', marker='o')
 
-  ax.set_xlabel('X')
-  ax.set_ylabel('Y')
-  ax.set_zlabel('px')
+  #ax.set_xlabel('X')
+  #ax.set_ylabel('Y')
+  #ax.set_zlabel('px')
 
   #plt.show()
 

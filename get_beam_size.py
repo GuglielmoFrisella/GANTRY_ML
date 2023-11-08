@@ -119,7 +119,7 @@ class getBeamSize:
                 maxbety = 10000
                 maxbetx = 10000
                 print("beta - x,y = {:.4f}, {:.4f}; alpha - x,y = {:.4f}, {:.4f}; "
-                      "dx - inj, end = {:.4f}, {:.4f}): ".format(betx, bety, alfx, alfy, dx, dx2))
+                      "dx, dx2 = {:.4f}, {:.4f}): ".format(betx, bety, alfx, alfy, dx, dx2))
         return beam_size_x, beam_size_y, beam_size_z, loss, error_flag, alfx, alfy, kl_divergence, dx, dx2, self.sig_nom_x, self.sig_nom_y, sig_nom_x_after, sig_nom_y_after, float(
             maxbetx), float(maxbety), beam_pos_x, beam_pos_y, frac_x, frac_y
 
@@ -129,13 +129,14 @@ class getBeamSize:
         # set magnet strengths/positions
         self.set_quads()
         try:
-            ptc_output, error_flag = self.ptc_track('GANTRY$START',  'iso', 'iso',self.init_dist)
-            #ptc_output, error_flag = self.ptc_track('MARK0', 'iso', 'iso', self.init_dist)
+            ptc_output, error_flag = self.ptc_track('gantry$start',  'iso', 'iso',self.init_dist) #Non comprendo bene come funzioni
+            #ptc_output, error_flag = self.ptc_track('GANTRY$START',  'mark0', 'iso',self.init_dist) #verifica se effettivamente tracka le particelle in input
+            #print(ptc_output['x'])
             #print(ptc_output['x'].loc['iso'])
             #sys.exit()
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                                     DY=0, dpy=0)
-            x0 = np.array(ptc_output['x'].loc['iso'])
+            x0 = np.array(ptc_output['x'].loc['iso']) #in meters
             y0 = np.array(ptc_output['y'].loc['iso'])
             z0 = np.array(ptc_output['t'].loc['iso'])
             px0 = np.array(ptc_output['px'].loc['iso'])
@@ -153,13 +154,13 @@ class getBeamSize:
                 _, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, _, kl_divergence, \
                 sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y = self.penalise()
             else:
-                emitx = self.calcEmit(x0, px0)
+                emitx = self.calcEmit(x0, px0) #in meters * rad
                 print("output emittance x = {:.4f} um".format(emitx * self.gamma * 10 ** 6))
-                sig_nom_x_after = np.multiply(np.sqrt(emitx), self.beta_nom)
+                sig_nom_x_after = np.sqrt(np.multiply(emitx, self.beta_nom))* 10**3
 
                 emity = self.calcEmit(y0, py0)
                 print("output emittance y = {:.4f} um".format(emity * self.gamma * 10 ** 6))
-                sig_nom_y_after = np.multiply(np.sqrt(emity), self.beta_nom)
+                sig_nom_y_after = np.sqrt(np.multiply(emitx, self.beta_nom))* 10**3
 
                 beam_size_x, beam_size_y, beam_size_z, beam_pos_x, beam_pos_y, frac_x, frac_y = self.get_beam_params(x0, y0, z0)
                 # Calculate the KL divergence
@@ -174,6 +175,8 @@ class getBeamSize:
                                                                                    kl_divergence_px, kl_divergence_py))
 
                 ptc_twiss = self.ptc_twiss()
+                #print(ptc_twiss['name'])
+                
                 # Calculate twiss parameters at merge-point
                 if 'iso:1' in ptc_twiss['name']:
                     betx = twiss['betx'][ptc_twiss['name'] == 'iso:1'][0]
@@ -425,15 +428,15 @@ class getBeamSize:
 
     def get_beam_params(self, x0, y0, z0, rms=False):
         if rms:
-            beam_size_x = np.multiply(self.rmsValue(x0), 10 ** 0)
-            beam_size_y = np.multiply(self.rmsValue(y0), 10 ** 0)
-            beam_size_z = np.multiply(self.rmsValue(z0), 10 ** 0)
+            beam_size_x = np.multiply(self.rmsValue(x0), 10 ** 3)
+            beam_size_y = np.multiply(self.rmsValue(y0), 10 ** 3)
+            beam_size_z = np.multiply(self.rmsValue(z0), 10 ** 3)
         else:
-            beam_size_x = np.multiply(np.std(x0), 10 ** 0)
-            beam_size_y = np.multiply(np.std(y0), 10 ** 0)
-            beam_size_z = np.multiply(np.std(z0), 10 ** 0)
-        beam_pos_x = np.multiply(np.mean(x0), 10 ** 0)
-        beam_pos_y = np.multiply(np.mean(y0), 10 ** 0)
+            beam_size_x = np.multiply(np.std(x0), 10 ** 3)
+            beam_size_y = np.multiply(np.std(y0), 10 ** 3)
+            beam_size_z = np.multiply(np.std(z0), 10 ** 3)
+        beam_pos_x = np.multiply(np.mean(x0), 10 ** 3)
+        beam_pos_y = np.multiply(np.mean(y0), 10 ** 3)
         # frac_x = np.divide(sum(abs(x0)<5.76*10**-6), len(x0))
         # frac_y = np.divide(sum(abs(y0)<5.76*10**-6), len(y0))
         frac_x = stats.kurtosis(self.reject_outliers(x0), fisher=True)

@@ -25,31 +25,31 @@ a1 = 0
 a2 = 0
 
 qkmb = -0.01437*0
-q0 = 2.323811628
-q1 = -2.897820544
-q2 = 5.80293764
-q3 = -5.441585438
-q4 = 1.948010225
-q5 = -2.129893896
-q6 = 1.966194965
-q7 = 2.962078517
-q8 = -3.876905437
+q0 = 2.323811628*0
+q1 = -2.897820544*0
+q2 = 5.80293764*0
+q3 = -5.441585438*0
+q4 = -1.948010225*0
+q5 = 2.129893896*0
+q6 = 1.966194965*0
+q7 = 2.962078517*0
+q8 = -3.876905437*0
 
 
 
 # # enter the values here over which to optimise, otherwise hard-code them into MAD-X file
 # Norm indicates the maximum strength of quad intensity
 x = {
-    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 10},
-    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 10},
+    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 20},
+    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 20},
     2: {'name': 'kq2', 'strength': q2, 'type': 'quadrupole', 'norm': 50},
     3: {'name': 'kq3', 'strength': q3, 'type': 'quadrupole', 'norm': 50},
-    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 10},
-    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 10},
+    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 20},
+    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 20},
     6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 50},
     7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 50},
     8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 50},
-    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5},
+    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5}
     # 15: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 0.2},
     # 16: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 0.2},
     # 17: {'name': 'dist2', 'strength': a2, 'type': 'distance', 'norm': 0.2},
@@ -57,7 +57,7 @@ x = {
 
 # Specify parameters for optimisation
 solver = 'Powell'
-n_iter = 100
+n_iter = 1000
 n_particles = 1000  # Used to generate distribution to track
 foil_w = 0*100e-6
 init_dist = []

@@ -111,16 +111,16 @@ class kOptEnv(gym.Env):
                         0,  # alfay
                         0
                         ]
-        self.weights = [1,  # beam size x
-                        1,  # beam size y
+        self.weights = [100,  # beam size x
+                        100,  # beam size y
                         1,  # kurt x
                         1,  # kurt y
                         #
                         # 0,   # x = y
                         1,  # dx
                         1,  # dx2
-                        1,  # alfax
-                        1,  # alfay
+                        100,  # alfax
+                        100,  # alfay
                         1
                         ]
         # y_raw = np.tanh(np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)/1000)

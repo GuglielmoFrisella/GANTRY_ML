@@ -3,6 +3,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import sys
 from scipy.stats import norm
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 
@@ -157,7 +158,7 @@ class Plot:
             for j in range(self.dof):
                 self.madx.input(self.name[j] + "=" + str(args[0][j]) + ";")
                 print(self.name[j][0] + self.name[j][-1] + "=" + str(args[0][j])+ ";")
-        self.madx.use(sequence='TT43', range='#s/#e')
+        self.madx.use(sequence='GANTRY', range='#s/#e')
         self.madx.twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         fig = plt.figure(figsize=(8,7), constrained_layout=True)
         gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[1, 4])
@@ -172,12 +173,12 @@ class Plot:
         self.madx.select(flag='twiss',
                          column=['name', 'keyword', 's', 'l','sigma_x', 'sigma_y', 'betx', 'bety', 'alfx', 'alfy', 'dx', 'dy', 'mux',
                                  'muy','RE56', 'RE16', 'TE166'])
-        self.madx.input(
-            "sigma_x := 1000*(sqrt((table(twiss, betx)*6.81e-9) + (abs(table(twiss,dx))*0.002)*(abs(table(twiss,dx))*0.002)));")
-        self.madx.input(
-            "sigma_y :=  1000*(sqrt((table(twiss, bety)*6.81e-9) + (abs(table(twiss,dy))*0.002)*(abs(table(twiss,dy))*0.002)));")
-        twiss = self.madx.twiss(RMATRIX=True, BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
-
+        #self.madx.input(
+         #   "sigma_x := 1000*(sqrt((table(twiss, betx)*6.81e-9) + (abs(table(twiss,dx))*0.002)*(abs(table(twiss,dx))*0.002)));")
+        #self.madx.input(
+          #  "sigma_y :=  1000*(sqrt((table(twiss, bety)*6.81e-9) + (abs(table(twiss,dy))*0.002)*(abs(table(twiss,dy))*0.002)));")
+        twiss = self.madx.twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
+	
         for idx in range(np.size(twiss['l'])):
             if twiss['name'][idx] == 'foil:0':
                 ax.plot([twiss['s'][idx], twiss['s'][idx]],
@@ -219,13 +220,13 @@ class Plot:
                                  'muy'])
 
         # self.madx.select(flag='interpolate', step=0.05)
-        self.madx.ptc_twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0,
+        self.madx.ptc_twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0,
                             file='ptc_twiss2.out')
 
         ptc_twiss = np.genfromtxt('ptc_twiss2.out', skip_header=90)
 
 
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
 
         # ax.plot(twiss['s'], np.sqrt(twiss['betx'] * self.emitx_before + (0.002 * twiss['dx']) ** 2), 'k', label=r"$\beta_x$")
         # ax.plot(twiss['s'], np.sqrt(twiss['bety'] * self.emity_before + (0.002 * twiss['dy']) ** 2), 'r', label=r"$\beta_y$")
@@ -242,7 +243,7 @@ class Plot:
         # ax.plot(twiss['s'], 4*np.sqrt(twiss['bety'] * 2*6.8e-9 + (0.002 * twiss['dy']) ** 2), 'r--')
         # ax.plot(ptc_twiss[:, 2], np.sqrt(ptc_twiss[:, 3] * 6.8e-9 + (0.002 * ptc_twiss[:, 15]) ** 2), 'k')
         # ax.plot(ptc_twiss[:, 2], np.sqrt(ptc_twiss[:, 6] * 6.8e-9 + (0.002 * ptc_twiss[:, 17]) ** 2), 'r')
-
+        
         for idx in range(np.size(twiss['l'])):
             if twiss['name'][idx] == 'foil:0':
                 ax.plot([twiss['s'][idx], twiss['s'][idx]],
@@ -250,6 +251,7 @@ class Plot:
                          np.max(np.sqrt(twiss['bety'] * self.emity_before + (0.002 * twiss['dy']) ** 2))], color='m',
                         linestyle='--', linewidth=2.5)
 
+        
         ax2 = ax.twinx()
         ln3 = ax2.plot(twiss['s'], twiss['Dx'], 'g',  label=r"$D_x$")
         ln4 = ax2.plot(twiss['s'], twiss['Dy'], 'b', label=r"$D_y$")
@@ -263,12 +265,13 @@ class Plot:
         ax2.tick_params(labelsize=32)
         # ax.set_ylim = (-1, 1)
         spine_color = 'gray'
+        
 
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
         ax.set(xlim=(0, twiss['s'][-1]))
         # ax.set(ylim=(-0.001, 0.025))
-        #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.gcf().subplots_adjust(bottom=0.15)
         ax1.set(xlim=(0, twiss['s'][-1]), ylim=(-1, 1))
         ax1.axes.get_yaxis().set_visible(False)
         ax1.spines['top'].set_visible(False)
@@ -284,6 +287,7 @@ class Plot:
                 ax0.tick_params(width=2.5, direction='out', color=spine_color)
                 # ax0.tick_params('off')
         plt.show()
+  
 
     def ptc_twiss_2(self):
         """
@@ -303,7 +307,7 @@ class Plot:
         self.madx.select(flag='twiss',
                          column=['name', 'keyword', 'k1l', 'k2l', 'k3l', 's', 'l', 'betx', 'bety', 'dx', 'dy', 'mux',
                                  'muy'])
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
 
         for idx in range(np.size(twiss['l'])):
             if twiss['name'][idx] == 'foil:0':
@@ -343,7 +347,7 @@ class Plot:
                         facecolor='c', edgecolor='c'))
 
         self.madx.select(flag='interpolate', step=0.05)
-        self.madx.ptc_twiss(RMATRIX=True, BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0,
+        self.madx.ptc_twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0,
                             file='ptc_twiss2.out')
         ptc_twiss = np.genfromtxt('ptc_twiss2.out', skip_header=90)
 
@@ -351,7 +355,7 @@ class Plot:
                          column=['name', 'keyword', 'k1l', 'k2l', 'k3l', 's', 'l', 'betx', 'bety', 'dx', 'dy', 'mux',
                                  'muy'])
 
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
 
         # ax.plot(twiss['s'], np.sqrt(twiss['betx'] * 6.8e-9 + (0.002 * twiss['dx']) ** 2), 'k')
         # ax.plot(twiss['s'], np.sqrt(twiss['bety'] * 6.8e-9 + (0.002 * twiss['dy']) ** 2), 'r')
@@ -409,12 +413,12 @@ class Plot:
         self.madx.select(flag='twiss',
                          column=['name', 'keyword', 'k1l', 'k2l', 'k3l', 's', 'l', 'betx', 'bety', 'dx', 'dy', 'mux',
                                  'muy'])
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0,
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0,
                                 file="twiss_opt_out.out")
         self.madx.select(flag='twiss',
                          column=['name', 'keyword', 'k1l', 'k2l', 'k3l', 's', 'l', 'betx', 'bety', 'dx', 'dy', 'mux',
                                  'muy'])
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0,
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0,
                                 file="twiss_opt_out.out")
 
         for idx in range(np.size(twiss['l'])):
@@ -458,7 +462,7 @@ class Plot:
                          column=['name', 'keyword', 'k1l', 'k2l', 'k3l', 's', 'l', 'betx', 'bety', 'dx', 'dy', 'mux',
                                  'muy'])
         self.madx.select(flag='interpolate', step=0.01)
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
 
         ax.plot(twiss['s'], twiss['mux'][-1] * 2 - twiss['mux'] * 2, 'k')
         ax.plot(twiss['s'], twiss['muy'][-1] * 2 - twiss['muy'] * 2, 'r')
@@ -506,7 +510,7 @@ class Plot:
             #         self.madx.input(self.name[j] + "=" + str(args[0][j]) + ";")
             #         print(self.name[j][0] + self.name[j][-1] + "=" + str(args[0][j]) + ";")
             # self.madx.use(sequence='TT43', range='#s/#e')
-            # self.madx.twiss(RMATRIX=True, BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+            # self.madx.twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,
                                     DY=0,
                                     dpy=0)
@@ -578,7 +582,7 @@ class Plot:
             pt0 = self.madx.table.trackone['pt'][idx_temp]
 
             self.madx.use(sequence='TT43', range="FOIL1/TT43$END")
-            twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+            twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
             self.madx.ptc_create_universe()
             self.madx.ptc_create_layout(model=1, method=2, exact=True, NST=100)
             self.madx.ptc_setswitch(fringe=True)
@@ -627,7 +631,7 @@ class Plot:
             pt0 = self.madx.table.trackone['pt'][idx_temp]
 
             self.madx.use(sequence='TT43', range="FOIL2/TT43$END")
-            twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+            twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
             self.madx.ptc_create_universe()
             self.madx.ptc_create_layout(model=1, method=2, exact=True, NST=100)
             self.madx.ptc_setswitch(fringe=True)
@@ -946,7 +950,7 @@ class Plot:
         #         self.madx.input(self.name[j] + "=" + str(args[0][j]) + ";")
         #         print(self.name[j][0] + self.name[j][-1] + "=" + str(args[0][j]) + ";")
         self.madx.use(sequence='TT43', range='#s/#e')
-        # self.madx.twiss(RMATRIX=True, BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        # self.madx.twiss(RMATRIX=True, BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0, DY=0,
                                 dpy=0)
         # init_dist = self.init_dist
@@ -1015,7 +1019,7 @@ class Plot:
         pt0 = self.madx.table.trackone['pt'][idx_temp]
 
         self.madx.use(sequence='TT43', range="FOIL/TT43$END")
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         self.madx.ptc_create_universe()
         self.madx.ptc_create_layout(model=1, method=2, exact=True, NST=15)
         self.madx.ptc_setswitch(fringe=True)
@@ -1505,8 +1509,8 @@ class Plot:
         ptout = np.array([])
         self.madx.select(flag='interpolate', step=0.01)
 
-        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                alfy=str(-2.1110),
+        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                alfy=str(0),
                                 deltap=str(-0.00))
         betx0 = twiss.betx
         bety0 = twiss.bety
@@ -1514,8 +1518,8 @@ class Plot:
         for i in range(81):
             pt = -0.002 + i * 0.00005
             self.madx.select(flag='interpolate', step=0.01)
-            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                    alfy=str(-2.1110), deltap=str(pt))
+            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                    alfy=str(0), deltap=str(pt))
             long = np.squeeze(twiss.s)
             betx = np.append(betx, np.divide(twiss.betx - betx0, betx0))
             bety = np.append(bety, np.divide(twiss.bety - bety0, bety0))
@@ -1607,8 +1611,8 @@ class Plot:
         ptout = np.array([])
         self.madx.select(flag='interpolate')
 
-        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                alfy=str(-2.1110),
+        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                alfy=str(0),
                                 deltap=str(-0.000), x=str(0))
         betx0 = twiss.betx
         bety0 = twiss.bety
@@ -1616,8 +1620,8 @@ class Plot:
         for i in range(81):
             x = -1000e-6 + i * 25e-6
             self.madx.select(flag='interpolate')
-            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                    alfy=str(-2.1110), x=str(x))
+            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                    alfy=str(0), x=str(x))
             long = twiss.s
             betx = np.append(betx, np.divide(twiss.betx - betx0, betx0))
             bety = np.append(bety, np.divide(twiss.bety - bety0, bety0))
@@ -1675,8 +1679,8 @@ class Plot:
         bety = np.array([])
         dx = np.array([])
         ptout = np.array([])
-        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                alfy=str(-2.1110),
+        twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                alfy=str(0),
                                 deltap=str(-0.000))
         betx0 = twiss.betx
         bety0 = twiss.bety
@@ -1685,8 +1689,8 @@ class Plot:
             y = -1000e-6 + i * 25e-6
             pt = 0
             self.madx.select(flag='interpolate')
-            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(-2.1703), dx=str(0), dpx=str(0), bety=str(11.1824),
-                                    alfy=str(-2.1110), deltap=str(pt), y=str(y))
+            twiss = self.madx.twiss(betx=str(11.3866), alfx=str(0), dx=str(0), dpx=str(0), bety=str(11.1824),
+                                    alfy=str(0), deltap=str(pt), y=str(y))
             long = twiss.s
             betx = np.append(betx, np.divide(twiss.betx - betx0, betx0))
             bety = np.append(bety, np.divide(twiss.bety - bety0, bety0))
@@ -2048,7 +2052,7 @@ class Plot:
         self.madx.use(sequence='TT43')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
         # self.madx.select(flag='interpolate', step=0.05)
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         survey = self.madx.survey(x0=0,
                                   y0=0,
                                   z0=0,
@@ -2230,7 +2234,7 @@ class Plot:
 
         i = 0
         print('Modelling plasma...')
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
 
         var = []
         f = open('distr/Ellipse_150MeV_nominal.tfs', 'r')  # initialize empty array
@@ -2247,7 +2251,7 @@ class Plot:
         self.madx.makethin(SEQUENCE='TT43', STYLE='teapot')
         # madx.flatten()
         self.madx.use(sequence='TT43')
-        twiss = self.madx.twiss(BETX=11.3866, ALFX=-2.1703, DX=0, DPX=0, BETY=11.1824, ALFY=-2.1110, DY=0, dpy=0)
+        twiss = self.madx.twiss(BETX=8.24397, ALFX=0, DX=0, DPX=0, BETY=8.24397, ALFY=0, DY=0, dpy=0)
         with self.madx.batch():
             self.madx.track(onetable=True, recloss=True, onepass=True)
             for particle in init_dist:
