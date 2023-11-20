@@ -15,7 +15,7 @@ def Beam_Generator(Beam_pars):
   c=299792458; #m/s^2
   E0=938.27208816 * c**2 * 10**6 #eV
   Ek= 430 * 10**6 #eV
-  dp_p=0.1/100;
+  dp_p=0.01/100;
   mean = np.array([0, 0, 0, 0, 0, np.sqrt(((E0+Ek)**2 - E0**2)/(c**2))])
 
   gammax = (1+alphax**2)/betx

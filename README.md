@@ -1,1 +1,0 @@
-# GANTRY_ML

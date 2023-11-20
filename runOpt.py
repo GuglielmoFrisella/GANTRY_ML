@@ -6,9 +6,9 @@ Track beam through line and extract beam parameters at merge-point
 """
 
 import OptEnv as opt_env
-import errorOptEnv as errorEnv
+#import errorOptEnv as errorEnv
 import Beam_Generator as beam_gen
-import plot_save_output as plot
+import plot_output as plot
 from scipy.optimize import minimize
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,10 +20,6 @@ import sys
 # Initial values for quadrupoles (q), sextupoles (s), octupoles (o) and distances (a)
 # nominal
 
-a0 = 0
-a1 = 0
-a2 = 0
-
 qkmb = -0.01437*0
 q0 = 2.323811628*0
 q1 = -2.897820544*0
@@ -34,7 +30,9 @@ q5 = 2.129893896*0
 q6 = 1.966194965*0
 q7 = 2.962078517*0
 q8 = -3.876905437*0
-
+a0 = 1.0;
+a1 = 1.0;
+a2 = 2;
 
 
 # # enter the values here over which to optimise, otherwise hard-code them into MAD-X file
@@ -49,27 +47,30 @@ x = {
     6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 50},
     7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 50},
     8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 50},
-    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5}
-    # 15: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 0.2},
-    # 16: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 0.2},
-    # 17: {'name': 'dist2', 'strength': a2, 'type': 'distance', 'norm': 0.2},
-}
+    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5},
+#    10: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 3},
+#    11: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 3},
+#    12: {'name': 'dist2', 'strength': a2, 'type': 'distance', 'norm': 3},
+} #distance doesn't work as expected: they increase only the final drift ('after ISO') in theory this it also forbidden by seq lenght definition
 
-# Specify parameters for optimisation
-solver = 'Powell'
+### Specify parameters for optimisation ###
+
+#Bounds on variables  are aviable for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell, trust-constr, and COBYLA methods
+solver = 'pyMOO'
 n_iter = 1000
-n_particles = 1000  # Used to generate distribution to track
-foil_w = 0*100e-6
+n_particles = 500 
 init_dist = []
 thin = False
+
 # Beam Parameters Vector [betx,bety,alphax,alphay,emix,emiy]
-beam_pars=[8.24397,8.24397,0.0,0.0,(7*10**(-6))/5,(7*10**(-6))/5]
+beam_pars=[8.24397,8.24397,0.0,0.0,((7/np.sqrt(5))*10**(-6)),((7/np.sqrt(5))*10**(-6))]
+
+#Generate a Gaussian Beam from beam_pars initialiazion
 beam_gen.Beam_Generator(beam_pars)
 file = 'distr/Beam_Distribution.tfs'
-#file = 'distr/Ellipse_150MeV_nominal.tfs'
 
 # Initialise environment
-env = opt_env.kOptEnv(solver, n_particles, n_iter, init_dist, foil_w, x, thin=thin)
+env = opt_env.kOptEnv(solver, n_particles, n_iter, init_dist, x, thin=thin)
 
 # Initialise input distribution
 var = []
@@ -85,8 +86,8 @@ del var
 # Either use optimiser (solution) or just output as is (step)
 # If don't use step, will run with values as in general_tt43_python
 if solver == "pyMOO":
-    env.step_MO(env.norm_data([y['strength'] for y in x.values()]))
-    plot = plot.Plot(env.madx, env.x_best, x, init_dist, foil_w, env.output_all, env.x_all)
+    env.step(env.norm_data([y['strength'] for y in x.values()]))
+    plot = plot.Plot(env.madx, env.x_best, x, init_dist,  env.output_all, env.x_all)
     plot.twiss()
 else:
     env.step(env.norm_data([y['strength'] for y in x.values()]))
@@ -95,15 +96,13 @@ else:
 if solver != "pyMOO":
     bnds = [(l, u) for l, u in zip(-np.ones(len(x.values())), np.ones(len(x.values())))]
     solution = minimize(env.step, env.norm_data([y['strength'] for y in x.values()]), method=solver, bounds=bnds, options={'maxfev':n_iter})
-    plot = plot.Plot(env.madx, env.x_best, x, init_dist, foil_w, env.output_all, env.x_all)
-    plot.twiss()
-    #plot.plotmat_twiss()
-    #plot.plot1()
-    # env.step(env.norm_data([y['strength'] for y in x.values()]))
-    # plot.error()
-    # plot.plotmat()
-    sys.exit()
+    plot = plot.Plot(env.madx, env.x_best, x, init_dist, env.output_all, env.x_all)    
+    #plot.twiss()
+    #plot.ptc_twiss_2()
+    #plot.plot1() #only if you are optimizing (plot the evolution of variables during optimization)
+    
 else:
+    print('ciao')
     from pymoo.model.problem import Problem
     from pymoo.algorithms.nsga2 import NSGA2
     from pymoo.algorithms.so_genetic_algorithm import GA
@@ -113,15 +112,15 @@ else:
     from pymoo.visualization.scatter import Scatter
     
     
-
+    print('ciao')
 
     
     x_0 = env.norm_data([y['strength'] for y in x.values()])
     norm_vect = env.norm_data([y['norm'] for y in x.values()])
     n_obj = 1
-    
 
     
+    sys.exit()
     
     class MatchingProblem(opt_env.kOptEnv, Problem):
         def __init__(self,
@@ -132,7 +131,7 @@ else:
                      n_constr=0,
                      xl=None,
                      xu=None):
-            opt_env.kOptEnv.__init__(self, solver, n_particles, n_iter, init_dist, foil_w, x, thin=thin)
+            opt_env.kOptEnv.__init__(self, solver, n_particles, n_iter, init_dist, x, thin=thin)
             Problem.__init__(self,
                              n_var=len(x_0),
                              n_obj=n_obj,
@@ -143,7 +142,7 @@ else:
         def _evaluate(self, x_n, out, *args, **kwargs):
             f = []
             for j in range(x_n.shape[0]):
-                y_raw_all, y_raw_single = self.step_MO(x_n[j, :])
+                y_raw_all, y_raw_single = self.step(x_n[j, :])
 
                 if self.n_obj == 1:
                     f.append(y_raw_single)
@@ -188,7 +187,8 @@ else:
                    seed=1,
                    copy_algorithm=False,
                    verbose=True)
-
+    print(res)
+    sys.exit()
     ps = problem.pareto_set(use_cache=False, flatten=False)
     pf = problem.pareto_front(use_cache=False, flatten=False)
 
@@ -199,7 +199,7 @@ else:
     for j in range(len(problem.x_best)):
         env.madx.input(name[j] + "=" + str(problem.x_best[j]) + ";")
         print(name[j] + "=" + str(problem.x_best[j]) + ";")
-        env.madx.use(sequence='TT43', range='#s/#e')
+        env.madx.use(sequence='GANTRY', range='#s/#e')
     # plot.plotmat_twiss()
     # plot.twiss()
     # plot.plot1(problem.output_all)
@@ -269,248 +269,4 @@ else:
     # ax2.set_ylim([0, 1000])
 
 
-
-## ERROR STUDIES
-
-    # errorEnv = errorEnv.Error(env.x_best, x, init_dist, n_particles, env.madx)
-    # nseeds = 1
-
-
-    # bsx_all = np.zeros(nseeds)
-    # bsy_all = np.zeros(nseeds)
-    # ox_all = np.zeros(nseeds)
-    # oy_all = np.zeros(nseeds)
-    # tsx_all = np.zeros(nseeds)
-    # tsy_all = np.zeros(nseeds)
-    # power_jit = 0*10e-6
-    # mom_jit = 0*1e-3
-    # input_jit = 0*10e-6
-    # proton_jit = 0*56
-    # for i in range(nseeds):
-    #     print(i)
-    #     scale = np.random.randint(1, 10000)
-    #     # errorEnv.addError(scale)
-    #     # errorEnv.OneToOne()
-    #     # errorEnv.addPowerConv(power_jit, i)
-    #     errorEnv.calcOffsets(8)
-    #     # print("before" + str(bsx) +" "+str(bsy)+" "+str(osx)+" "+str( osy))
-    #     # errorEnv.OneToOne()
-    #     # errorEnv.track()
-    #     # bsx_all[i] = bsx
-    #     # bsy_all[i] = bsy
-    #     # ox_all[i] = osx
-    #     # oy_all[i] = osy
-
-    #     print("after" + str(bsx) + " " + str(bsy) + " " + str(osx) + " " + str(osy))
-    #     tsx_all[i] = (proton_jit*np.random.normal() - osx)
-    #     tsy_all[i] = (proton_jit*np.random.normal() - osy)
-    #     print(bsx, bsy, osx, osy, tsx_all[i], tsy_all[i])
-    #     print((bsx < 6.9) & (bsy < 6.9), (tsx_all[i] < 13) & (tsy_all[i]< 13))
-    # print(sum((bsx_all < 6.9) & (bsy_all < 6.9)), sum((-13<tsx_all ) & (-13<tsy_all )&(tsx_all < 13) & (tsy_all < 13)), sum((-13<tsx_all ) & (-13<tsy_all )&(tsx_all < 13) & (tsy_all < 13)
-    #                                                                                 & (bsx_all < 6.9) & (bsy_all < 6.9)))
-    # print(np.mean(bsx_all), np.mean(bsy_all), np.mean(tsy_all), np.mean(tsy_all))
-
-nseeds = 2
-# errorEnv = errorEnv.Error(env.x_best, x, init_dist, n_particles)
-# Model steering algorithms
-errorEnv = errorEnv.Error(env.x_best, x, init_dist, n_particles)
-# errorEnv.track()
-# print("Adding the errors")
-# errorEnv.addError(0)
-# errorEnv.track()
-#
-# # errorEnv.OptScanMO()
-# print("doing svd")
-# errorEnv.svd_plot(10, 1)  # Takes n_iter, gain as input
-# print("doing dfs")
-# errorEnv.dfs_plot(10, 2, 3, 0.95)    # Number of seeds, dfs weight, number of iterations of steering, gain
-
-fig = plt.figure()
-gs = matplotlib.gridspec.GridSpec(7, 1)
-ax = fig.add_subplot(gs[0:3])
-ax1 = fig.add_subplot(gs[4:7])
-ax.plot([], '-', color=[0, 0.324219, 0.628906], label="Uncorrected")
-ax.plot([], '-', color="darkorange", label="Corrected")
-ax1.plot([], '-', color=[0, 0.324219, 0.628906], label="Uncorrected")
-ax1.plot([], '-', color="darkorange", label="Corrected")
-ax.legend()
-ax1.set_xlabel("s [m]")
-ax1.set_ylabel("Offset $y$ [mm]")
-# ax1.set_ylim([-5, 5])
-ax.set_xlabel("s [m]")
-ax.set_ylabel("Offset $x$ [mm]")
-# ax.set_ylim([-5, 5])
-# ax.set_title("Quad shunt")
-ax1.legend()
-
-# # # Quad shunt, dfs
-for i in range(0, nseeds):
-    errorEnv.shot = 0
-    errorEnv.addError(i)
-    bs_temp = errorEnv.track()
-    beam_size_before_x = bs_temp[0]
-    beam_size_before_y = bs_temp[1]
-    bpm_x_before, bpm_x_after, bpm_y_before, bpm_y_after, quad_x_before, quad_x_after, \
-    quad_y_before, quad_y_after, bpm_pos = errorEnv.quadshunt_plot(2, 0.5)
-    _, bpm_x_after, _, bpm_y_after, _, quad_x_after, \
-    _, quad_y_after, bpm_pos = errorEnv.quadshunt_plot(1, 1)
-    # _, bpm_x_after, _, bpm_y_after, _, quad_x_after, _, quad_y_after, _ = errorEnv.dfs_plot(0, 1, 1, False)
-    _, bpm_x_after, _, bpm_y_after, _, quad_x_after, _, quad_y_after, _ = errorEnv.dfs_plot(1, 1, 0.95, True)
-
-    # errorEnv.SextOptScan(np.array(
-    #         ["mqawd.0:1", "mqawd.4:1", "mqawd.2:1", "mqawd.9:1", "mqawd.6:1", "mqawd.10:1", "mqawd.14:1", "mqawd.11:1"]))
-    bpm_x_after, bpm_y_after =    errorEnv.SextOptScan(np.array(
-            ["sd3:1", "sd1:1", "sd5:1", "sd2:1", "sd6:1", "sd4:1", "oct8:1", "oct7:1", "oct6:1", "oct11:1"]))
-    # _, bpm_x_after, _, bpm_y_after, _, quad_x_after, _, quad_y_after, _ = errorEnv.dfs_plot(1, 1, 1, False)
-    # errorEnv.OctOptScan()
-    # Takes number of seeds as input
-    #     # _, bpm_x_after, _, bpm_y_after, _, quad_x_after, \
-    #     #     _, quad_y_after, _ = errorEnv.dfs_plot(i, 1, 2, 0.95)   # Takes number of seeds as input
-    #     # _, bpm_x_after, _, bpm_y_after, _, quad_x_after, \errorEnv.dfs_plot(i, 1, 2, 0.95)
-    #     # _, quad_y_after, _ = errorEnv.dfs_plot(i, 2, 1, 0.7)  # Takes number of seeds as input
-    #     # _, bpm_x_after, _, bpm_y_after, _, quad_x_after, \
-    #     #         _, quad_y_after, bpm_pos = errorEnv.quadshunt_plot(i, 1, 0.95)  # Takes number of seeds as input
-    bs_temp = errorEnv.track()
-    print("---------------------------")
-    beam_size_after_x = bs_temp[0]
-    beam_size_after_y = bs_temp[1]
-    if i == 0:
-        bpm_x_before_all = bpm_x_before
-        bpm_y_before_all = bpm_y_before
-        bpm_x_after_all = bpm_x_after
-        bpm_y_after_all = bpm_y_after
-        quad_x_before_all = quad_x_before
-        quad_y_before_all = quad_y_before
-        quad_x_after_all = quad_x_after
-        quad_y_after_all = quad_y_after
-        beam_size_x_before_all = beam_size_before_x
-        beam_size_y_before_all = beam_size_before_y
-        beam_size_x_after_all = beam_size_after_x
-        beam_size_y_after_all = beam_size_after_y
-    else:
-        bpm_x_before_all = np.vstack((bpm_x_before_all, bpm_x_before))
-        bpm_y_before_all = np.vstack((bpm_y_before_all, bpm_y_before))
-        bpm_x_after_all = np.vstack((bpm_x_after_all, bpm_x_after))
-        bpm_y_after_all = np.vstack((bpm_y_after_all, bpm_y_after))
-        quad_x_before_all = np.vstack((quad_x_before_all, quad_x_before))
-        quad_y_before_all = np.vstack((quad_y_before_all, quad_y_before))
-        quad_x_after_all = np.vstack((quad_x_after_all, quad_x_after))
-        quad_y_after_all = np.vstack((quad_y_after_all, quad_y_after))
-        beam_size_x_before_all = np.vstack((beam_size_x_before_all, beam_size_before_x))
-        beam_size_y_before_all = np.vstack((beam_size_y_before_all, beam_size_before_y))
-        beam_size_x_after_all = np.vstack((beam_size_x_after_all, beam_size_after_x))
-        beam_size_y_after_all = np.vstack((beam_size_y_after_all, beam_size_after_y))
-    err_dict = {}
-    err_dict['bpm_x_before_all'] = bpm_x_before
-    err_dict['bpm_y_before_all'] = bpm_y_before
-    err_dict['bpm_x_after_all'] = bpm_x_after
-    err_dict['bpm_y_after_all'] = bpm_y_after
-    err_dict['quad_x_before_all'] = quad_x_before
-    err_dict['quad_y_before_all'] = quad_y_before
-    err_dict['quad_x_after_all'] = quad_x_after
-    err_dict['quad_y_after_all'] = quad_y_after
-    err_dict['beam_size_x_before_all'] = beam_size_before_x
-    err_dict['beam_size_y_before_all'] = beam_size_before_y
-    err_dict['beam_size_x_after_all'] = beam_size_after_x
-    err_dict['beam_size_y_after_all'] = beam_size_after_y
-    err_dict['n_shots'] = errorEnv.shot
-    err_dict['bpm_res'] = errorEnv.bpm_res
-    err_dict['btv_res'] = errorEnv.btv_res
-    err_dict['corr_err'] = errorEnv.corr_err
-    err_dict['offset_err'] = errorEnv.offset_err
-
-
-    filename = 'data/error_study_paper_' + str(i)
-    outfile = open(filename, 'wb')
-    # pickle.dump(err_dict, outfile)
-    outfile.close()
-
-    ax.plot(bpm_pos, bpm_x_before * 10 ** 3, '-', color=[0, 0.324219, 0.628906], label=None)
-    ax.plot(bpm_pos, bpm_x_after * 10 ** 3, '-', color="darkorange", label=None)
-    ax1.plot(bpm_pos, bpm_y_before * 10 ** 3, '-', color=[0, 0.324219, 0.628906], label=None)
-    ax1.plot(bpm_pos, bpm_y_after * 10 ** 3, '-', color="darkorange", label=None)
-# Plotting for the error studies
-#
-
-if nseeds > 1:
-    offsets_before = [bpm_x_before, bpm_y_before]
-    offsets_after = [bpm_x_after, bpm_y_after]
-    sizes_before = [beam_size_x_before_all, beam_size_y_before_all]
-    sizes_after = [beam_size_x_after_all, beam_size_y_after_all]
-    fig = plt.figure()
-    gs = matplotlib.gridspec.GridSpec(1, 2, wspace=0.25, hspace=0.7)
-    ax0 = fig.add_subplot(gs[0])
-    ax1 = fig.add_subplot(gs[1])
-    # ax2 = fig.add_subplot(gs[2])
-    # ax3 = fig.add_subplot(gs[3])
-    # ax4 = fig.add_subplot(gs[4])
-    # ax5 = fig.add_subplot(gs[5])
-    # ax6 = fig.add_subplot(gs[6])
-    # ax7 = fig.add_subplot(gs[7])
-    # ax8 = fig.add_subplot(gs[8])
-    i = 0
-    ax0.hist(sizes_before[i], alpha=0.8,
-             label="Mean before = %.2f $\mu$m" % np.multiply(1, np.mean(sizes_before[i])))
-    ax0.hist(sizes_after[i], alpha=0.8,
-             label="Mean after = %.2f $\mu$m" % np.multiply(1, np.mean(sizes_after[i])))
-    ax0.legend()
-
-    ax0.set_xlabel('Beam size in $\mu$m')
-    ax0.set_ylabel('Frequency')
-    ax0.set_title('Horizontal')
-    i = 1
-    ax1.hist(sizes_before[i], alpha=0.8,
-             label="Mean before = %.2f $\mu$m" % np.multiply(1, np.mean(sizes_before[i])))
-    ax1.hist(sizes_after[i], alpha=0.8,
-             label="Mean after = %.2f $\mu$m" % np.multiply(1, np.mean(sizes_after[i])))
-    ax1.legend()
-
-    ax1.set_xlabel('Beam size in $\mu$m')
-    ax1.set_ylabel('Frequency')
-    ax1.set_title('Vertical')
-    # fig = plt.figure()
-    # for idx2, ax in enumerate([ax0, ax1]):
-    #     ax = fig.add_subplot(gs[idx2])
-    #     ax.hist(1000000 * offsets_before[i][idx2], alpha=0.8,
-    #             label="Offsets before = %.2f $\mu$m" % np.multiply(1, np.std(
-    #                 1000000 * offsets_before[i][idx2])))
-    #     ax.hist(1000000 * offsets_after[i][:idx2], alpha=0.8,
-    #             label="Offsets after = %.2f $\mu$m" % np.multiply(1, np.std(
-    #                 1000000 * offsets_after[i][idx2])))
-    #     ax.legend()
-    #     ax.set_xlabel('Offset in $\mu$m')
-    #     ax.set_ylabel('Frequency')
-    #     ax.set_title('Quad = %s' % idx2)
-    # plt.show()
-    fig = plt.figure()
-    gs = matplotlib.gridspec.GridSpec(1, 2, wspace=0.25, hspace=0.7)
-    ax0 = fig.add_subplot(gs[0])
-    ax1 = fig.add_subplot(gs[1])
-    # ax2 = fig.add_subplot(gs[2])
-    # ax3 = fig.add_subplot(gs[3])
-    # ax4 = fig.add_subplot(gs[4])
-    # ax5 = fig.add_subplot(gs[5])
-    # ax6 = fig.add_subplot(gs[6])
-    # ax7 = fig.add_subplot(gs[7])
-    # ax8 = fig.add_subplot(gs[8])
-    i = 0
-    ax0.hist(offsets_before[i], alpha=0.8,
-             label="Jitter before = %.2f $\mu$m" % np.multiply(1, np.std(offsets_before[i])))
-    ax0.hist(offsets_after[i], alpha=0.8,
-             label="Jitter after = %.2f $\mu$m" % np.multiply(1, np.std(offsets_after[i])))
-    ax0.legend()
-
-    ax0.set_xlabel('Beam jitter at injection-point in $\mu$m')
-    ax0.set_ylabel('Frequency')
-    ax0.set_title('Horizontal')
-    i = 1
-    ax1.hist(offsets_before[i], alpha=0.8,
-             label="Jitter before = %.2f $\mu$m" % np.multiply(1, np.std(offsets_before[i])))
-    ax1.hist(offsets_after[i], alpha=0.8,
-             label="Jitter after = %.2f $\mu$m" % np.multiply(1, np.std(offsets_after[i])))
-    ax1.legend()
-
-    ax1.set_xlabel('Beam jitter at injection-point in $\mu$m')
-    ax1.set_ylabel('Frequency')
-    ax1.set_title('Vertical')
 

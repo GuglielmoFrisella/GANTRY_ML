@@ -16,11 +16,9 @@ import pickle
 
 class kOptEnv(gym.Env):
 
-    def __init__(self, solver, n_particles, _n_iter, init_dist, foil_w, x, thin):
+    def __init__(self, solver, n_particles, _n_iter, init_dist, x, thin):
         self.rew = 10 ** 50  # Must be higher than initial cost function - there is definitely a better way to do this
         self.counter = 0
-        self.sigma_x = 1000
-        self.sigma_y = 1000
         self.solver = solver
         self.x = x
         self.x_all = []
@@ -29,7 +27,6 @@ class kOptEnv(gym.Env):
         self.num_o = sum(np.array([y['type'] for y in x.values()]) == 'octupole')
         self.num_a = sum(np.array([y['type'] for y in x.values()]) == 'distance')
         self.dof = self.num_q + self.num_s + self.num_o + self.num_a
-        self.foil_w = foil_w
         # Store actions, beam size, loss and fraction for every iteration
         self.x_best = np.zeros([1, self.dof])
         self.output_all = []
@@ -75,49 +72,48 @@ class kOptEnv(gym.Env):
         else:
             self.x_all = np.vstack((self.x_all, x_nor))
 
-        c1 = get_beam_size.getBeamSize(x_unnor, self.n_particles, self.madx, self.init_dist, self.foil_w, self.x)
-        if self.foil_w == 0:
-            a = (c1.get_beam_size())
-        else:
-            a = (c1.get_beam_size_foil())
-
+        c1 = get_beam_size.getBeamSize(x_unnor, self.n_particles, self.madx, self.init_dist, self.x)
+        a = (c1.get_beam_size())
+        
         # If MAD-X has failed re-spawn process
         if a[4]:
             print("reset")
             self.reset(thin=self.thin)    # potential for problems
         # print("KL = " + str(round(a[7], 4)))
-        print('SIG_x =' + str(round(a[0], 4)) + ', SIG_y=' + str(round(a[1], 4)) + ', SIG_z=' + str(round(a[2], 2)))
-        # print('kurt_x =' + str(round(a[18], 4)) + ', kurt_y=' + str(round(a[19], 4)))
-        print('NOM SIG_x =' + str(round(a[10], 4)) + ', SIG_y=' + str(round(a[11], 4)))
+        dim=10**3
+        print('At starting point: SIG_x =' + str(round(a[10]*dim, 4)) + ' mm' + ', SIG_y=' + str(round(a[11]*dim, 4))+ ' mm')
+        print('At isocenter: SIG_x =' + str(round(a[0]*dim, 4)) + ' mm' + ', SIG_y=' + str(round(a[1]*dim, 4)) + ' mm' + ', SIG_z=' + str(round(a[2]*dim, 2)) + ' mm')
         print("LOSS = " + str(a[3]))
+        
+        MF=1 #magnification factor
 
-        self.parameters = [(a[0]-a[10]),  # beam size x matched
-                           (a[1]-a[11]),  # beam size y macthed
-                           a[0]+a[1], # beam size
-                           a[1]-a[0], # beam size
+        self.parameters = [(a[0]),  # beam size x matched
+                           (a[1]),  # beam size y macthed
+                           a[20], # beta x at isocenter
+                           a[21], # beta y at isocenter
                            a[8],  # dx
                            a[9],  # dx2
                            a[5],  # alfax
                            a[6],  # alfay
                            a[3]   # losses
                            ]
-        self.targets = [0,  # beam size x
-                        0,  # beam size y
-                        0,   # x = y
-                        0,   # x = y
+        self.targets = [MF*8*10**(-3),  # beam size x
+                        MF*8*10**(-3),  # beam size y
+                        (MF**2)*8.24397,   # betx 
+                        (MF**2)*8.24397,   # bety
                         0,  # dx
                         0,  # dx2
                         0,  # alfax
                         0,  # alfay
                         0
                         ]
-        self.weights = [100,  # beam size x
-                        100,  # beam size y
-                        1,  # kurt x
-                        1,  # kurt y
+        self.weights = [10,  # beam size x
+                        10,  # beam size y
+                        100,  # kurt x
+                        100,  # kurt y
                         #
                         # 0,   # x = y
-                        1,  # dx
+                        100,  # dx
                         1,  # dx2
                         100,  # alfax
                         100,  # alfay

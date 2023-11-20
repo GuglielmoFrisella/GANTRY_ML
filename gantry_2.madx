@@ -10,7 +10,7 @@ TITLE, s='GANTRY';
 
 option, echo;
 option, RBARC=FALSE;
-BEAM, particle=proton, PC=3*430*e+100, exn=(7/sqrt(5))*e-6, eyn=(7/sqrt(5))*e-6, npart=1.25e9, bunched;
+!BEAM, particle=proton, PC=3*430*e+100, exn=(7/sqrt(5))*e-6, eyn=(7/sqrt(5))*e-6, npart=1.25e9, bunched;
 !------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // DEFINITION OF PARAMETERS //
 rho:=1.65 ;
@@ -31,16 +31,20 @@ I1 = rho*(phi_x-phi_y)/(gap*(1+sin(phi_x)^2));
 l_wall=2.0;
 l_min := 0.325;
 
-dist0 := 1.834;
-dist1 := 2.141;
-dist2 := 0.977;
+dist0 := 1; !1.834;
+dist1 := 1; !2.141;
+dist2 := 2; !.977;
 
 l_mon2 := 0.325;
 l_corr2 := 0.650;
 l_corr3 := 0.650;
 
+kl1:=0;
+kl2:=0;
+kl3:=0;
+kl4:=0;
 
-l_sloped= dist0+dist1+dist2;
+l_sloped := dist0+dist1+dist2;
 
 l_var := (l_sloped-4.73); !per rinormalizzare all'altra seq.
 
@@ -56,7 +60,7 @@ L3= L2 + l_1 + l_0 + l_2;
 
 MBH_down: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1*0, hgap = gap/2, aperture = {gap,gap};  
 
-MBH_up: RBEND, L := lmb  , ANGLE:= AngDown, FINT := I1*0, hgap = gap/2, aperture = {gap,gap};  
+MBH_up: RBEND, L := lmb  , ANGLE:= Ang, FINT := I1*0, hgap = gap/2, aperture = {gap,gap};  
 
 
 !------ Quadrupoles
@@ -103,10 +107,10 @@ Q3: COLD_QUAD , at = L1 + 3.17340697;
 !-------- Diagonal L3
 
 MON2: MON, at = L2 + l_mon2;
-Q4: WARM_QUAD , at = L2 + dist0;
-CORR2: COR, at = L2 + dist0 + l_corr2;
-Q5: WARM_QUAD , at = L2 +dist1 + dist0;
-CORR3: COR, at = L2 + dist1 + dist0 + l_corr3;
+Q4: WARM_QUAD , from=MON2, at = dist0;
+CORR2: COR, from=Q4, at = l_corr2;
+Q5: WARM_QUAD , from=CORR2, at = dist1;
+CORR3: COR, from=Q5, at = l_corr3;
 
 !-------- Final Bend down
 
@@ -149,18 +153,13 @@ Q6 , K1	:= kq6;
 Q7 , K1	:= kq7;
 Q8 , K1	:= kq8;
 
-kmb = 0.01437;
 
-qd1 = kmb;
-qd2 = kmb;
-qd3 = kmb;
-qd4 = kmb;
+MB1 , K1    :=  kmb;
+MB2 , K1    :=  kmb;
+MB3 , K1    :=  kmb;
+MB4 , K1    :=  kmb;
 
-MB1 , K1    :=  qd1;
-MB2 , K1    :=  qd2;
-MB3 , K1    :=  qd3;
-MB4 , K1    :=  qd4;
-
+kmb = 0.01437*1000000;
 kq0 = 2.323811628;
 kq1 = -2.897820544;
 kq2 = 5.80293764;
@@ -171,7 +170,7 @@ kq6 = 1.966194965;
 kq7 = 2.962078517;
 kq8 = -3.876905437;
 
-
+BEAM;
 USE, SEQUENCE=GANTRY;
 USEKICK,    Status = on;
 USEMONITOR, Status = off;
