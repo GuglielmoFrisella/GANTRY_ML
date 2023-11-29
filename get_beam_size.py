@@ -48,18 +48,28 @@ class getBeamSize:
 
     def get_beam_size(self):
         _, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, _, kl_divergence, \
-        sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y = self.penalise()
+        sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety = self.penalise()
         # set magnet strengths/positions
         self.set_quads()
         try:
             ptc_output, error_flag = self.ptc_track('gantry$start',  'gantry$end', ['gantry$start','iso'],self.init_dist) 
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,DY=0, dpy=0, file='twiss_verified.txt')
-            x0 = np.array(ptc_output['x'].loc['iso']) #in meters
-            y0 = np.array(ptc_output['y'].loc['iso'])
-            z0 = np.array(ptc_output['t'].loc['iso'])
-            px0 = np.array(ptc_output['px'].loc['iso'])
-            py0 = np.array(ptc_output['py'].loc['iso'])
-            loss = (self.n_particles - len(x0))/self.n_particles
+            maxbety = max(twiss['bety'])
+            maxbetx = max(twiss['betx'])
+            if maxbetx>500 or maxbety>500:
+            	print("Betas are too high, " + "Betas are (betx,bety)=" + str(maxbetx) + "," + str(maxbetx))
+            	loss, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, error_flag, kl_divergence, \
+            sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety = self.penalise()
+            else:           	          	
+            	#print(ptc_output['x'].loc['#s'])
+            	#print(ptc_output['x'].loc['#e'])
+            	#print(ptc_output)
+            	x0 = np.array(ptc_output['x'].loc['iso']) #in meters
+            	y0 = np.array(ptc_output['y'].loc['iso'])
+            	z0 = np.array(ptc_output['t'].loc['iso'])
+            	px0 = np.array(ptc_output['px'].loc['iso'])
+            	py0 = np.array(ptc_output['py'].loc['iso'])
+            	loss = (self.n_particles - len(x0))/self.n_particles
         except RuntimeError:
             error_flag = 1
         if error_flag == 1:
@@ -116,8 +126,7 @@ class getBeamSize:
                     alfy = 1
                     dx = 1
                     dx2 = 1
-                maxbety = 10000
-                maxbetx = 10000
+                
                 print("beta - x,y = {:.4f}, {:.4f}; alpha - x,y = {:.4f}, {:.4f}; "
                       "dx dpx = {:.4f}, {:.4f}): ".format(betx, bety, alfx, alfy, dx, dx2))
         return beam_size_x, beam_size_y, beam_size_z, loss, error_flag, alfx, alfy, kl_divergence, dx, dx2, self.sig_nom_x, self.sig_nom_y, sig_nom_x_after, sig_nom_y_after, float(
@@ -244,8 +253,10 @@ class getBeamSize:
         alfy = 10
         dx = 1
         dx2 = 1
+        betx=10000
+        bety=10000
         return loss, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, error_flag, kl_divergence, \
-               sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y
+               sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety
 
     def rmsValue(self, arr):
         n = len(arr)

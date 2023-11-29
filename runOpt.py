@@ -20,19 +20,22 @@ import sys
 # Initial values for quadrupoles (q), sextupoles (s), octupoles (o) and distances (a)
 # nominal
 
-qkmb = -0.01437*0
-q0 = 2.323811628*0
-q1 = -2.897820544*0
-q2 = 5.80293764*0
-q3 = -5.441585438*0
-q4 = -1.948010225*0
-q5 = 2.129893896*0
-q6 = 1.966194965*0
-q7 = 2.962078517*0
-q8 = -3.876905437*0
-a0 = 1.0;
-a1 = 1.0;
-a2 = 2;
+tt=-1
+
+qkmb = 0.014*0
+q0 = 1.984*tt
+q1 = -2.427*tt
+q2 = 7.026*tt
+q3 = -5.775*tt
+q4 = 2.071*tt
+q5 = -2.1537*tt
+q6 = 0.503*tt
+q7 = 3.958*tt
+q8 = -3.982*tt
+
+a0 = 1.3262; 
+a1 = 1.5006; 
+a2 = 1.9031;
 
 
 # # enter the values here over which to optimise, otherwise hard-code them into MAD-X file
@@ -47,7 +50,7 @@ x = {
     6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 50},
     7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 50},
     8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 50},
-    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5},
+    9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5}
 #    10: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 3},
 #    11: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 3},
 #    12: {'name': 'dist2', 'strength': a2, 'type': 'distance', 'norm': 3},
@@ -56,17 +59,18 @@ x = {
 ### Specify parameters for optimisation ###
 
 #Bounds on variables  are aviable for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell, trust-constr, and COBYLA methods
-solver = 'pyMOO'
-n_iter = 1000
+solver = 'Nelder-Mead'
+n_iter = 2e+6
 n_particles = 500 
 init_dist = []
+tollerance = 1e-6
 thin = False
 
 # Beam Parameters Vector [betx,bety,alphax,alphay,emix,emiy]
 beam_pars=[8.24397,8.24397,0.0,0.0,((7/np.sqrt(5))*10**(-6)),((7/np.sqrt(5))*10**(-6))]
 
 #Generate a Gaussian Beam from beam_pars initialiazion
-beam_gen.Beam_Generator(beam_pars)
+#beam_gen.Beam_Generator(beam_pars)
 file = 'distr/Beam_Distribution.tfs'
 
 # Initialise environment
@@ -88,31 +92,32 @@ del var
 if solver == "pyMOO":
     env.step(env.norm_data([y['strength'] for y in x.values()]))
     plot = plot.Plot(env.madx, env.x_best, x, init_dist,  env.output_all, env.x_all)
-    plot.twiss()
+    #plot.twiss()
 else:
     env.step(env.norm_data([y['strength'] for y in x.values()]))
 
 # Optimise
 if solver != "pyMOO":
     bnds = [(l, u) for l, u in zip(-np.ones(len(x.values())), np.ones(len(x.values())))]
-    solution = minimize(env.step, env.norm_data([y['strength'] for y in x.values()]), method=solver, bounds=bnds, options={'maxfev':n_iter})
+    solution = minimize(env.step, env.norm_data([y['strength'] for y in x.values()]), method=solver, bounds=bnds, tol= tollerance, options={'maxfev':n_iter})
     plot = plot.Plot(env.madx, env.x_best, x, init_dist, env.output_all, env.x_all)    
-    #plot.twiss()
-    #plot.ptc_twiss_2()
-    #plot.plot1() #only if you are optimizing (plot the evolution of variables during optimization)
+    plot.twiss()
+    plot.ptc_twiss_2()
+    plot.plot1() #only if you are optimizing (plot the evolution of variables during optimization)
+    sys.exit()
     
 else:
-    print('ciao')
-    from pymoo.model.problem import Problem
-    from pymoo.algorithms.nsga2 import NSGA2
-    from pymoo.algorithms.so_genetic_algorithm import GA
-    from pymoo.factory import get_sampling, get_crossover, get_mutation
+    from pymoo.core.problem import Problem
+    from pymoo.algorithms.moo.nsga2 import NSGA2
+    from pymoo.algorithms.soo.nonconvex.ga import GA
+    #from pymoo.factory import get_sampling, get_crossover, get_mutation
+    from pymoo.operators.sampling.lhs import LHS
+    from pymoo.operators.crossover.sbx import SBX
+    from pymoo.operators.mutation.pm import PM
+    from pymoo.problems import get_problem
     from pymoo.optimize import minimize
-    from pymoo.factory import get_termination
+    #from pymoo.factory import get_termination
     from pymoo.visualization.scatter import Scatter
-    
-    
-    print('ciao')
 
     
     x_0 = env.norm_data([y['strength'] for y in x.values()])
@@ -120,7 +125,7 @@ else:
     n_obj = 1
 
     
-    sys.exit()
+   
     
     class MatchingProblem(opt_env.kOptEnv, Problem):
         def __init__(self,
@@ -142,12 +147,13 @@ else:
         def _evaluate(self, x_n, out, *args, **kwargs):
             f = []
             for j in range(x_n.shape[0]):
-                y_raw_all, y_raw_single = self.step(x_n[j, :])
+                #y_raw_all, y_raw_single = self.step(x_n[j, :])
+                y_raw_single = self.step(x_n[j, :])
 
-                if self.n_obj == 1:
-                    f.append(y_raw_single)
-                else:
-                    f.append(y_raw_all)
+                #if self.n_obj == 1:
+                f.append(y_raw_single)
+                #else:
+                #    f.append(y_raw_all)
             out["F"] = np.vstack(f)
 
     problem = MatchingProblem(
@@ -164,9 +170,9 @@ else:
     algorithm = GA(
         pop_size=200,
         n_offsprings=200,
-        sampling=get_sampling("real_lhs"),
-        crossover=get_crossover("real_sbx", prob=0.9, eta=15),
-        mutation=get_mutation("real_pm", eta=30),
+        sampling=LHS(),
+        crossover=SBX(prob=0.9, eta=15),
+        mutation=PM(eta=30),
         eliminate_duplicates=True
     )
 
@@ -179,11 +185,14 @@ else:
     #     n_max_gen=50000,
     #     n_max_evals=200000
     # )
-    termination = get_termination("n_eval", n_iter)
-
+    #termination = get_termination("n_eval", n_iter)
+    #print(problem)
+    #print(algorithm)
+    #sys.exit()
+    
     res = minimize(problem,
                    algorithm,
-                   termination,
+                   termination=("n_eval", n_iter),
                    seed=1,
                    copy_algorithm=False,
                    verbose=True)

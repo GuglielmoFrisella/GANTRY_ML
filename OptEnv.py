@@ -83,7 +83,7 @@ class kOptEnv(gym.Env):
         dim=10**3
         print('At starting point: SIG_x =' + str(round(a[10]*dim, 4)) + ' mm' + ', SIG_y=' + str(round(a[11]*dim, 4))+ ' mm')
         print('At isocenter: SIG_x =' + str(round(a[0]*dim, 4)) + ' mm' + ', SIG_y=' + str(round(a[1]*dim, 4)) + ' mm' + ', SIG_z=' + str(round(a[2]*dim, 2)) + ' mm')
-        print("LOSS = " + str(a[3]))
+        print("LOSS = " + str(a[3]*100) + "%")
         
         MF=1 #magnification factor
 
@@ -95,7 +95,7 @@ class kOptEnv(gym.Env):
                            a[9],  # dx2
                            a[5],  # alfax
                            a[6],  # alfay
-                           a[3]   # losses
+                           a[3]   # losses percentage
                            ]
         self.targets = [MF*8*10**(-3),  # beam size x
                         MF*8*10**(-3),  # beam size y
@@ -114,10 +114,10 @@ class kOptEnv(gym.Env):
                         #
                         # 0,   # x = y
                         100,  # dx
-                        1,  # dx2
+                        100,  # dx2
                         100,  # alfax
                         100,  # alfay
-                        1
+                        100   # Number of Losses (multiplied for 100)
                         ]
         # y_raw = np.tanh(np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)/1000)
         y_raw = np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)
@@ -144,89 +144,10 @@ class kOptEnv(gym.Env):
         if self.counter % 1000 == 0:
             print('reset madx')
             self.kill_reset(thin=self.thin)
+        print(type(output))
         return output
 
-    def step_MO(self, x_nor):
-        self.counter = self.counter + 1
-        print("iter = " + str(self.counter))
-
-        x_unnor = self.unnorm_data(x_nor)  # normalise actions
-        if np.size(self.x_all) == 0:
-            self.x_all = x_nor
-        else:
-            self.x_all = np.vstack((self.x_all, x_nor))
-
-        c1 = get_beam_size.getBeamSize(x_unnor, self.n_particles, self.madx, self.init_dist, self.foil_w, self.x)
-        if self.foil_w == 0:
-            a = (c1.get_beam_size_twiss())
-        else:
-            a = (c1.get_beam_size_foil())
-
-        # If MAD-X has failed re-spawn process
-        if a[4]:
-            print("reset")
-            self.reset(thin=self.thin)
-
-        print('SIG_x =' + str(round(a[0], 4)) + ', SIG_y=' + str(round(a[1], 4)) + ', SIG_z=' + str(round(a[2], 2)))
-        # print('WAIST SIG_x =' + str(round(a[-2], 4)) + ', SIG_y=' + str(round(a[-1], 4)))
-        # print('NOM SIG_x =' + str(round(a[10], 4)) + ', SIG_y=' + str(round(a[11], 4)))
-        print('FRAC_x =' + str(round(a[18], 4)) + ', FRAC_y=' + str(round(a[19], 4)))
-        print('dx =' + str(round(a[8], 4)) + ', dx2=' + str(round(a[9], 4)))
-        print('ax =' + str(round(a[5], 4)) + ', ay=' + str(round(a[6], 4)))
-        print("LOSS = " + str(a[3]))
-
-        self.parameters = [abs(a[0]-5.76) * (a[3] + 1) + 1000 * abs(a[8]) ,  # beam size x
-                           abs(a[1]-5.76) * (a[3] + 1) + 1000 * abs(a[9]) ,  # beam size y
-                           # a[8], # dx
-                           # a[9] # dx2
-                           # a[3] # loss
-                           # a[5], # alfay
-                           # a[6]
-                           ]
-        self.targets = [0,  # beam size x
-                        0,  # beam size y
-                        # 0,  # dx
-                        # 0  # dx2
-                        # 0  # alfax
-                        # 0,  # alfay
-                        # 0
-                        ]
-        self.weights = [1,  # beam size x
-                        1,  # beam size y
-                        # 0.01,  # dx
-                        # 0.01  # dx2
-                        # 1000  # loss
-                        ]
-        y_raw = np.log(np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights) + 1)
-        self.madx.input("delete, table = trackone;")
-        self.madx.input("delete, table = trackloss;")
-        self.madx.input("delete, table = tracksumm;")
-
-        print("ymse = " + str(self._mse(y_raw)))
-        output = self._mse(y_raw)
-        if output < self.rew:
-            self.rew = output
-            self.x_best = x_unnor
-            if np.size(self.output_all) == 0:
-                self.output_all = [output, a[0], a[1], a[0], a[1], self._mse(y_raw), self.x_best]
-            else:
-                self.output_all = np.vstack((self.output_all, [output, a[0], a[1], a[0], a[1],  self._mse(y_raw), self.x_best]))
-        else:
-            if len(np.shape(self.output_all)) == 1:
-                # self.output_all = np.vstack((self.output_all, [self.output_all, a[0], a[1], self.x_best]))
-                pass
-            else:
-                temp = np.append(np.hstack((self.output_all[-1, :-4], a[0], a[1], self._mse(y_raw))), 0)
-                temp[-1] = self.x_best
-                self.output_all = np.vstack((self.output_all, temp))
-        print("best = " + str(self.rew))
-        if self.counter % 1000 == 0:
-            print('automatic reset madx')
-            self.kill_reset(thin=self.thin)
-        if self.counter % 100000 == 0:
-            pickle.dump(self.output_all, open("frac_output_all_" + str(time.time()) + ".p", "wb"))
-        return y_raw, self._mse(y_raw)
-
+    
     def _mse(self, values):
         return np.sum(values ** 2) / len(values)
 
