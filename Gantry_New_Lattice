@@ -1,0 +1,161 @@
+!*******************************************
+! SUPERCONDUCTING CARBON-IONS GANTRY
+! 
+! G. Frisella et al.
+!
+!*******************************************
+
+
+TITLE, s='GANTRY';
+
+option, echo;
+option, RBARC=FALSE;
+!BEAM, particle=proton, PC=3*430*e+100, exn=(7/sqrt(5))*e-6, eyn=(7/sqrt(5))*e-6, npart=1.25e9, bunched;
+
+!------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// DEFINITION OF OPTIMIZED DIPOLE //
+
+rho:=1.65 ;
+Ang := -27/180.0*pi;
+AngNull := -4/180*pi;
+
+lmb:=abs(Ang)*rho;
+lnull:=abs(AngNull)*rho;
+knull:= 0; ! Version old 0.018845 ;
+ksex:= 0;
+
+!------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//ELEMENTS DEFINITION WITHOUT DRIFTS
+
+MBNULL_UP: SBEND, l:=lnull, angle:= AngNull;
+
+MBNULL_DOWN: SBEND, l:=lnull, angle:= -AngNull;
+
+
+MBUP: SBEND, l:=lmb, angle:=Ang;
+
+MBDOWN: SBEND, l:=lmb, angle:=-Ang;
+
+WQ : QUADRUPOLE,  l:=0.125;
+
+
+!------- Beam position monitors
+
+MON: MONITOR, L=0;
+
+
+ISO:MARKER,L=0;
+
+!------ Kicker
+
+COR: KICKER, L=0,HKICK:=0,VKICK:=0;
+
+!------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// LATTICE DEFINITION
+
+lspacer = 1.2;
+
+lsad =  3.75;
+
+l_wall=2.5;
+
+L1 := 2*lnull + 3*lmb + lspacer + l_wall+1.5;
+L2 := L1 + 2*lnull + 3*lmb + lspacer;
+L3 := L2 + 2*lnull + 3*lmb;
+
+
+gantry: sequence, l = L3 + lsad;
+
+!!! First Dipole Section
+
+MARK0: marker,    at = 0;
+MON0: MON, at = 2.0;
+
+M1: marker,    at = l_wall;
+
+MB1: MBUP, at= lmb/2 + l_wall;
+MB2: MBNULL_UP, at= lmb + l_wall + lnull/2;
+MB3: MBUP, at= lnull + (3/2)*lmb +l_wall;
+MB4: MBNULL_UP, at= (3/2)*lnull + 2*lmb +l_wall;
+MB5: MBUP, at= 2*lnull + (5/2)*lmb +l_wall;
+
+COR1: COR, at= L1- 0.9 ;
+
+MON1: MON, at= L1- 0.4 ;
+
+
+!!! Second Dipole Section
+
+
+MB6: MBDOWN, at= L1 + lmb/2;
+MB7: MBNULL_DOWN, at= L1 + lmb + lnull/2;
+MB8: MBDOWN, at= L1 + lnull + (3/2)*lmb;
+MB9: MBNULL_DOWN, at= L1 + (3/2)*lnull + 2*lmb;
+MB10: MBDOWN, at= L1 + 2*lnull + (5/2)*lmb;
+
+
+COR2: COR, at= L2- 0.9;
+
+MON2: MON, at= L2- 0.4;
+
+!!! Third Dipole Section
+
+
+MB11: MBDOWN, at= L2 + lmb/2 ;
+MB12: MBNULL_DOWN, at= L2 + lmb + lnull/2;
+MB13: MBDOWN, at= L2 + lnull + (3/2)*lmb;
+MB14: MBNULL_DOWN, at= L2 + (3/2)*lnull + 2*lmb;
+MB15: MBDOWN, at= L2 + 2*lnull + (5/2)*lmb;
+
+
+MON3: MON, at = L3 + lsad - 0.25;
+ISO,  at = L3 + lsad ;
+
+
+endsequence;
+
+!-------- QUADRUPOLE GRADIENTS
+
+k1 =1.18358e+00 ;
+k2 = 0;
+k3 =-1.75956e+00;
+k4 = 0;
+k5 =1.14681e+00 ;
+
+k6 =8.76490e-01;
+k7 = 0;
+k8:=-1.48014e+00 ;
+k9 = 0;
+k10 =2.12045e+00;
+
+k11 =1.01420e+00 ;
+k12 = 0;
+k13 =-1.34020e+00;
+k14 = 0;
+k15 =3.11638e-02 ;
+
+
+MB1 , K1    :=  k1;
+MB2 , K1    :=  k2;
+MB3 , K1    :=  k3;
+MB4 , K1    :=  k4;
+MB5 , K1    :=  k5;
+MB6 , K1    :=  k6;
+MB7 , K1    :=  k7;
+MB8 , K1    :=  k8;
+MB9 , K1    :=  k9;
+MB10 , K1    :=  k10;
+MB11 , K1    :=  k11;
+MB12 , K1    :=  k12;
+MB13 , K1    :=  k13;
+MB14 , K1    :=  k14;
+MB15 , K1    :=  k15;
+
+
+BEAM;
+USE, SEQUENCE=GANTRY;
+USEKICK,    Status = on;
+USEMONITOR, Status = off;
+
+set, format="15.9f";
+

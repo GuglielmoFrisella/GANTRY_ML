@@ -20,9 +20,9 @@ import sys
 # Initial values for quadrupoles (q), sextupoles (s), octupoles (o) and distances (a)
 # nominal
 
-tt=-1
+tt=1
 
-qkmb = 0.014*0
+qkmb = 0.014*tt
 q0 = 1.984*tt
 q1 = -2.427*tt
 q2 = 7.026*tt
@@ -41,15 +41,15 @@ a2 = 1.9031;
 # # enter the values here over which to optimise, otherwise hard-code them into MAD-X file
 # Norm indicates the maximum strength of quad intensity
 x = {
-    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 20},
-    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 20},
-    2: {'name': 'kq2', 'strength': q2, 'type': 'quadrupole', 'norm': 50},
-    3: {'name': 'kq3', 'strength': q3, 'type': 'quadrupole', 'norm': 50},
-    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 20},
-    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 20},
-    6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 50},
-    7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 50},
-    8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 50},
+    0: {'name': 'kq0', 'strength': q0, 'type': 'quadrupole', 'norm': 10},
+    1: {'name': 'kq1', 'strength': q1, 'type': 'quadrupole', 'norm': 10},
+    2: {'name': 'kq2', 'strength': q2, 'type': 'quadrupole', 'norm': 40},
+    3: {'name': 'kq3', 'strength': q3, 'type': 'quadrupole', 'norm': 40},
+    4: {'name': 'kq4', 'strength': q4, 'type': 'quadrupole', 'norm': 10},
+    5: {'name': 'kq5', 'strength': q5, 'type': 'quadrupole', 'norm': 10},
+    6: {'name': 'kq6', 'strength': q6, 'type': 'quadrupole', 'norm': 40},
+    7: {'name': 'kq7', 'strength': q7, 'type': 'quadrupole', 'norm': 40},
+    8: {'name': 'kq8', 'strength': q8, 'type': 'quadrupole', 'norm': 40},
     9: {'name': 'kmb', 'strength': qkmb, 'type': 'quadrupole', 'norm': 5}
 #    10: {'name': 'dist0', 'strength': a0, 'type': 'distance', 'norm': 3},
 #    11: {'name': 'dist1', 'strength': a1, 'type': 'distance', 'norm': 3},
@@ -59,7 +59,7 @@ x = {
 ### Specify parameters for optimisation ###
 
 #Bounds on variables  are aviable for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell, trust-constr, and COBYLA methods
-solver = 'Nelder-Mead'
+solver = 'pyMOO'
 n_iter = 2e+6
 n_particles = 500 
 init_dist = []

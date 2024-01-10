@@ -48,28 +48,28 @@ class getBeamSize:
 
     def get_beam_size(self):
         _, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, _, kl_divergence, \
-        sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety = self.penalise()
+        sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y = self.penalise()
         # set magnet strengths/positions
         self.set_quads()
         try:
             ptc_output, error_flag = self.ptc_track('gantry$start',  'gantry$end', ['gantry$start','iso'],self.init_dist) 
             twiss = self.madx.twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0,DY=0, dpy=0, file='twiss_verified.txt')
+            
             maxbety = max(twiss['bety'])
             maxbetx = max(twiss['betx'])
-            if maxbetx>500 or maxbety>500:
+            
+            if maxbetx>1000 or maxbety>1000:
             	print("Betas are too high, " + "Betas are (betx,bety)=" + str(maxbetx) + "," + str(maxbetx))
             	loss, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, error_flag, kl_divergence, \
-            sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety = self.penalise()
-            else:           	          	
-            	#print(ptc_output['x'].loc['#s'])
-            	#print(ptc_output['x'].loc['#e'])
-            	#print(ptc_output)
+            sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y = self.penalise()
+            else:
             	x0 = np.array(ptc_output['x'].loc['iso']) #in meters
             	y0 = np.array(ptc_output['y'].loc['iso'])
             	z0 = np.array(ptc_output['t'].loc['iso'])
             	px0 = np.array(ptc_output['px'].loc['iso'])
             	py0 = np.array(ptc_output['py'].loc['iso'])
             	loss = (self.n_particles - len(x0))/self.n_particles
+            	
         except RuntimeError:
             error_flag = 1
         if error_flag == 1:
@@ -91,6 +91,7 @@ class getBeamSize:
                 sig_nom_y_after = np.sqrt(np.multiply(emitx, self.beta_nom))
 
                 beam_size_x, beam_size_y, beam_size_z, beam_pos_x, beam_pos_y, frac_x, frac_y = self.get_beam_params(x0, y0, z0)
+                
                 # Calculate the KL divergence
                 kl_divergence_x = self.calcKL(x0)
                 kl_divergence_y = self.calcKL(y0)
@@ -130,7 +131,7 @@ class getBeamSize:
                 print("beta - x,y = {:.4f}, {:.4f}; alpha - x,y = {:.4f}, {:.4f}; "
                       "dx dpx = {:.4f}, {:.4f}): ".format(betx, bety, alfx, alfy, dx, dx2))
         return beam_size_x, beam_size_y, beam_size_z, loss, error_flag, alfx, alfy, kl_divergence, dx, dx2, self.sig_nom_x, self.sig_nom_y, sig_nom_x_after, sig_nom_y_after, float(
-            maxbetx), float(maxbety), beam_pos_x, beam_pos_y, frac_x, frac_y, betx, bety
+            maxbetx), float(maxbety), beam_pos_x, beam_pos_y, frac_x, frac_y
 
     def ptc_track(self, start, end, observe, init_dist):
         error_flag = 0
@@ -247,16 +248,14 @@ class getBeamSize:
         kl_divergence = 1
         sig_nom_x_after = 0
         sig_nom_y_after = 0
-        maxbetx = 1
-        maxbety = 1
+        maxbetx = 1000
+        maxbety = 1000
         alfx = 10
         alfy = 10
         dx = 1
         dx2 = 1
-        betx=10000
-        bety=10000
         return loss, beam_size_x, beam_size_y, beam_pos_x, beam_pos_y, beam_size_z, error_flag, kl_divergence, \
-               sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, betx, bety
+               sig_nom_x_after, sig_nom_y_after, maxbetx, maxbety, alfx, alfy, dx, dx2, frac_x, frac_y, 
 
     def rmsValue(self, arr):
         n = len(arr)
@@ -278,6 +277,6 @@ class getBeamSize:
         self.madx.ptc_create_layout(model=1, method=6, exact=True, NST=100)
         self.madx.ptc_setswitch(fringe=True)
         self.madx.ptc_twiss(BETX=self.betx0, ALFX=self.alfx0, DX=0, DPX=0, BETY=self.bety0, ALFY=self.alfy0, DY=0,
-                            dpy=0, no=5) #no stands for??
+                            dpy=0) 
         twiss = self.madx.table['ptc_twiss']
         return twiss

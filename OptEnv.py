@@ -27,13 +27,18 @@ class kOptEnv(gym.Env):
         self.num_o = sum(np.array([y['type'] for y in x.values()]) == 'octupole')
         self.num_a = sum(np.array([y['type'] for y in x.values()]) == 'distance')
         self.dof = self.num_q + self.num_s + self.num_o + self.num_a
+        self.beta_nom = 8.24397
+        
         # Store actions, beam size, loss and fraction for every iteration
         self.x_best = np.zeros([1, self.dof])
         self.output_all = []
+        
         # Vector to normalise actions
         self.norm_vect = [y['norm'] for y in x.values()]
+        
         # Number of particles to track
         self.n_particles = n_particles
+        
         # Max number of iterations
         self._n_iter = _n_iter
 
@@ -42,6 +47,7 @@ class kOptEnv(gym.Env):
         self.madx = Madx(stdout=False)
         self.madx.call(file='gantry_2.madx')
         self.madx.option(echo=False, warn=True, info=False, debug=False, verbose=False)
+        
         if thin:
             print("making thin")
             self.madx.select(FLAG='makethin', THICK=True)
@@ -63,10 +69,9 @@ class kOptEnv(gym.Env):
     def step(self, x_nor):
         self.counter = self.counter + 1
         print("iter = " + str(self.counter))
-        # if self.counter > 100:
-        #     self.n_particles = 1000
-
+        
         x_unnor = self.unnorm_data(x_nor)  # normalise actions
+        
         if np.size(self.x_all) == 0:
             self.x_all = x_nor
         else:
@@ -89,8 +94,8 @@ class kOptEnv(gym.Env):
 
         self.parameters = [(a[0]),  # beam size x matched
                            (a[1]),  # beam size y macthed
-                           a[20], # beta x at isocenter
-                           a[21], # beta y at isocenter
+                           a[14], # max beta x along the line
+                           a[15], # max beta y along the line
                            a[8],  # dx
                            a[9],  # dx2
                            a[5],  # alfax
@@ -99,25 +104,23 @@ class kOptEnv(gym.Env):
                            ]
         self.targets = [MF*8*10**(-3),  # beam size x
                         MF*8*10**(-3),  # beam size y
-                        (MF**2)*8.24397,   # betx 
-                        (MF**2)*8.24397,   # bety
+                        20,    # betx 
+                        20,   # bety
                         0,  # dx
                         0,  # dx2
                         0,  # alfax
                         0,  # alfay
                         0
                         ]
-        self.weights = [10,  # beam size x
-                        10,  # beam size y
-                        100,  # kurt x
-                        100,  # kurt y
-                        #
-                        # 0,   # x = y
-                        100,  # dx
-                        100,  # dx2
-                        100,  # alfax
-                        100,  # alfay
-                        100   # Number of Losses (multiplied for 100)
+        self.weights = [100,  # beam size x
+                        100,  # beam size y
+                        5,  # kurt x
+                        5,  # kurt y
+                        5,  # dx
+                        10,  # dx2
+                        10,  # alfax
+                        10,  # alfay
+                        1/100   # Number of Losses (multiplied for 100)
                         ]
         # y_raw = np.tanh(np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)/1000)
         y_raw = np.multiply(np.array(self.parameters) - np.array(self.targets), self.weights)
@@ -177,7 +180,7 @@ class kOptEnv(gym.Env):
             self.madx.select(FLAG='makethin', THICK=True)
             self.madx.makethin(SEQUENCE='GANTRY', STYLE='teapot')
         self.madx.use(sequence='GANTRY')
-        self.madx.twiss(BETX=5, ALFX=0, DX=0, DPX=0, BETY=5, ALFY=0, DY=0, dpy=0)
+        self.madx.twiss(BETX=self.beta_nom, ALFX=0, DX=0, DPX=0, BETY=self.beta_nom, ALFY=0, DY=0, dpy=0)
 
     def kill_reset(self, thin):
         """
@@ -193,7 +196,7 @@ class kOptEnv(gym.Env):
             self.madx.select(FLAG='makethin', THICK=True)
             self.madx.makethin(SEQUENCE='GANTRY', STYLE='teapot')
         self.madx.use(sequence='GANTRY')
-        self.madx.twiss(BETX=5, ALFX=0, DX=0, DPX=0, BETY=5, ALFY=0, DY=0, dpy=0)
+        self.madx.twiss(BETX=self.beta_nom, ALFX=0, DX=0, DPX=0, BETY=self.beta_nom, ALFY=0, DY=0, dpy=0)
 
     def render(self, mode='human'):
         pass

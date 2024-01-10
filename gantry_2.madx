@@ -143,7 +143,7 @@ endsequence;
 
 !-------- QUADRUPOLE GRADIENTS
 
-kmb = 0.01437*0;
+kmb = 0.01437;
 kq0 = 2.323811628;
 kq1 = -2.897820544;
 kq2 = 5.80293764;
